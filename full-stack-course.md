@@ -82,4 +82,59 @@ You can also add properties to an object on the fly by either using dot notation
 
 ## Component state, event handlers
 
+### Stateful component
+
+Making repeated calls to the ReactDOM.render-method is not the recommended way to re-render components.
+
+All of our components up till now have been simple in the sense that they have not contained any state that could change during the lifecycle of the component. Next, let's add state to our application's App component with the help of React's state hook.
+
+    const App = (props) => {
+      const [counter, setCounter] = useState(0)
+
+      setTimeout(
+        () => setCounter(counter + 1),
+        1000
+      )
+
+      return (
+        <div>{counter}</div>
+      )
+    }
+
+
+When the state modifying function setCounter is called, React re-renders the component which means that the function body of the component function gets re-executed.
+
+### Event handling
+
+    const App = (props) => {
+      const [counter, setCounter] = useState(0)
+
+      return (
+        <div>
+          <div>{counter}</div>
+          <button onClick={() => setCounter(counter + 1)}>
+            plus
+        </button>
+        </div>
+      )
+    }
+
+Every time we click the button, `onClick` is called which calls `setCounter` causing the component to be re-rendered.
+
+### Passing state to child components
+
+It's recommended to write React components that are small and reusable across the application and even across projects.
+
+One best practice in React is to lift the state up high enough in the component hierarchy. The documentation says:
+
+> Often, several components need to reflect the same changing data. We recommend lifting the shared state up to their closest common ancestor.
+
+### Changes in state cause rerendering
+
+When the application starts, the code in App is executed. This code uses a useState - hook to create the application state - value of the counter counter. The component renders the Display component. It displays the counter's value (0), and three Button components. The buttons have event handlers, which are used to change the state of the counter.
+
+When one of the buttons is clicked, the event handler is executed. The event handler changes the state of the App component with the setCounter function. Calling a function which changes the state causes the component to rerender.
+
+So, if a user clicks the plus button, the button's event handler changes the value of counter to 1, and the App component is rerendered. This causes its subcomponents Display and Button to also be rerendered. Display receives the new value of the counter, 1, as props. The Button components receive event handlers which can be used to change the state of the counter.
+
 ## A more complex state, debugging React apps

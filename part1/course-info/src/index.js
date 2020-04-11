@@ -7,13 +7,15 @@ const Header = (props) => {
   );
 }
 
-const Part = (props) => (
+const Part = ({ part, exercises }) => {
+  return (
     <>
       <p>
-        {props.part} {props.exercises}
+        {part} {exercises}
       </p>
     </>
-)
+  );
+}
 
 const Content = (props) => {
   const es = props.parts.map(p => 
