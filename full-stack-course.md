@@ -1,4 +1,4 @@
-# Part 1
+# Part 1: Introduction to React
 
 ## Introduction to React
 
@@ -138,3 +138,153 @@ When one of the buttons is clicked, the event handler is executed. The event han
 So, if a user clicks the plus button, the button's event handler changes the value of counter to 1, and the App component is rerendered. This causes its subcomponents Display and Button to also be rerendered. Display receives the new value of the counter, 1, as props. The Button components receive event handlers which can be used to change the state of the counter.
 
 ## A more complex state, debugging React apps
+
+### Complex state
+
+You might be wondering why we didn't just update the state directly, like this:
+
+    const handleLeftClick = () => {
+        clicks.left++
+        setClicks(clicks)
+    }
+
+The application appears to work. However, it is forbidden in React to mutate state directly, since it can result in unexpected side effects. Changing state has to always be done by setting the state to a new object. If properties from the previous state object want to simply be copied, this has to be done by copying those properties into a new object.
+
+Storing all of the state in a single state object is a bad choice for this particular application; there's no apparent benefit and the resulting application is a lot more complex. In this case storing the click counters into separate pieces of state is a far more suitable choice.
+
+### Handling arrays
+
+    const handleLeftClick = () => {
+        setAll(allClicks.concat('L'))
+        setLeft(left + 1)
+    }
+
+Adding the new item to the array is accomplished with the `concat` method, that does not mutate the existing array but rather returns a new copy of the array with the item added to it.
+
+As mentioned previously, it's also possible in JavaScript to add items to an array with the push method. If we add the item by pushing it to the allClicks array and then updating the state, the application would still appear to work:
+
+    const handleLeftClick = () => {
+        allClicks.push('L')
+        setAll(allClicks)
+        setLeft(left + 1)
+    }
+
+However, don't do this. As mentioned previously, the state of React components like allClicks must not be mutated directly. Even if mutating state appears to work in some cases, it can lead to problems that are very hard to notice.
+
+### Old React
+
+In this course we use the state hook to add state to our React components, which is part of the newer versions of React and is available from version 16.8.0 onwards. Before the addition of hooks, there was no way to add state to React functional components. Components that required state had to be defined as React class components using the JavaScript class syntax.
+
+In this course we have made the slightly radical decision to use hooks exclusively from day one, to ensure that we are learning the future style of React. Even though functional components are the future of React, it is still important to learn the class syntax, as there are billions of lines of old React code that you might end up maintaining some day. The same applies to documentation and examples of React that you may stumble across on the internet.
+
+### Debugging
+
+Keep the browser's developer console open at all times.
+
+Keep both your code and the web page open together at the same time, all the time.
+
+NB when you use console.log for debugging, don't combine objects in a Java-like fashion by using a plus. Instead of writing:
+
+    console.log('props value is' + props)
+
+Separate the things you want to log to the console with a comma:
+
+    console.log('props value is', props)
+
+If you use the Java-like way to combine a string with an object, you will end up with a rather uninformative log message:
+
+    props value is [Object object]
+
+Whereas the items separated by a comma will all be available in the browser console for further inspection.
+
+You can pause the execution of your application code in the Chrome developer console's debugger, by writing the command `debugger` anywhere in your code.
+
+You can also access the debugger without the debugger command by adding break points in the Sources tab. Inspecting the values of the component's variables can be done in the Scope-section.
+
+It is highly recommended to add the React developer tools extension to Chrome. It adds a new React tab to the developer tools. The new React developer tools tab can be used to inspect the different React elements in the application, along with their state and props.
+
+### Rules of Hooks
+
+The `useState` function (as well as the `useEffect` function) must not be called from inside of a loop, a conditional expression, or any place that is not a function defining a component. This must be done to ensure that the hooks are always called in the same order, and if this isn't the case the application will behave erratically.
+
+To recap, hooks may only be called from the inside of a function body that defines a React component:
+
+	const App = (props) => {
+	  const [age, setAge] = useState(0)
+	  const [name, setName] = useState('Juha Tauriainen')
+
+	  if ( age > 10 ) {
+		// this does not work!
+		const [foobar, setFoobar] = useState(null)
+	  }
+
+	  for ( let i = 0; i < age; i++ ) {
+		// also this is not good
+		const [rightWay, setRightWay] = useState(false)
+	  }
+
+	  const notGood = () => {
+		// and this is also illegal
+		const [x, setX] = useState(-1000)
+	  }
+
+	  return (
+		//...
+	  )
+	}
+
+### Do Not Define Components Within Components
+
+The application still appears to work, but don't implement components like this! Never define components inside of other components. The method provides no benefits and leads to many unpleasant problems. 
+
+# Part 2: Communicating with server
+
+## Rendering a collection, modules
+
+React uses the key attributes of objects in an array to determine how to update the view generated by a component when the component is re-rendered.
+
+### Anti-pattern: array indexes as keys
+
+We could have used the array indexes as keys. The indexes can be retrieved by passing a second parameter to the callback function of the map-method:
+
+	notes.map((note, i) => ...)
+
+As such, one way to define the row generation without getting errors is:
+
+	<ul>
+	  {notes.map((note, i) => 
+		<li key={i}>
+		  {note.content}
+		</li>
+	  )}
+	</ul>
+
+This is, however, not recommended and can cause undesired problems even if it seems to be working just fine.
+
+### Refactoring modules
+
+	const Note = ({ note }) => {  return (    <li>{note.content}</li>  )}
+
+	const App = ({ notes }) => {
+	  return (
+		<div>
+		  <h1>Notes</h1>
+		  <ul>
+			{notes.map(note =>           
+				<Note key={note.id} note={note} />        
+			)}
+          </ul>
+		</div>
+	  )
+	}
+
+Note, that the key attribute must now be defined for the Note components, and not for the li tags like before. 
+
+## Forms
+
+## Getting data from server
+
+## Altering data in server
+
+## Adding styles to React app
+
