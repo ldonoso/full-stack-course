@@ -282,6 +282,65 @@ Note, that the key attribute must now be defined for the Note components, and no
 
 ## Forms
 
+	const addNote = (event) => {
+	  event.preventDefault()
+	  console.log('button clicked', event.target)
+	}
+
+The event parameter is the event that triggers the call to the event handler function.
+
+The event handler immediately calls the event.preventDefault() method, which prevents the default action of submitting a form. The default action would, among other things, cause the page to reload.
+
+How do we access the data contained in the form's input element? There are many ways to accomplish this; the first method we will take a look at is the use of so-called controlled components.
+
+	  const [newNote, setNewNote] = useState('a new note...')
+
+	  return (
+		<div>
+
+		  <form onSubmit={addNote}>
+			  <input value={newNote} />
+			  <button type="submit">save</button>
+		  </form>
+
+		</div>
+	  )
+
+The placeholder text stored as the initial value of the newNote state appears in the input element, but the input text can't be edited. Since we assigned a piece of the App component's state as the value attribute of the input element, the App component now controls the behavior of the input element.
+
+In order to enable editing of the input element, we have to register an event handler that synchronizes the changes made to the input with the component's state:
+
+	<input
+	  value={newNote}
+	  onChange={handleNoteChange}
+	/>
+
+The event handler is called every time a change occurs in the input element. The event handler function receives the event object as its event parameter:
+
+	const handleNoteChange = (event) => {
+	  console.log(event.target.value)
+	  setNewNote(event.target.value)
+	}
+
+The target property of the event object now corresponds to the controlled input element and `event.target.value` refers to the input value of that element.
+
+Note that we did not need to call the event.preventDefault() method like we did in the onSubmit event handler. This is because there is no default action that occurs on an input change, unlike on a form submission.
+
+Now the App component's newNote state reflects the current value of the input, which means that we can complete the addNote function for creating new notes:
+
+	const addNote = (event) => {
+	  event.preventDefault()
+	  const noteObject = {
+		content: newNote,
+		date: new Date().toISOString(),
+		important: Math.random() < 0.5,
+		id: notes.length + 1,
+	  }
+
+	  setNotes(notes.concat(noteObject))
+	  setNewNote('')
+	}
+
 ## Getting data from server
 
 ## Altering data in server
