@@ -5,9 +5,10 @@ const getWeather = async ({latlng}) => {
   const [lat, lng] = latlng
 
   const params = {
-    access_key: process.env.KEY_WEATHER_STACK,
+    access_key: process.env.REACT_APP_API_KEY,
     query: `${lat},${lng}`,
   }
+  console.log(process.env.KEY_WEATHER_STACK)
 
   return axios.get('http://api.weatherstack.com/current', { params })
     .then(response => {
