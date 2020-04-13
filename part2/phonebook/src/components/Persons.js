@@ -1,7 +1,7 @@
 import React from 'react'
 
-const Person = ({name, phone}) => 
-    <li key={name}>{`${name} - ${phone}`}</li>
+const Person = ({person}) => 
+    <li>{`${person.name} - ${person.number}`}</li>
 
 const Persons = ({persons, filter}) => {
     const personsToShow =
@@ -10,7 +10,7 @@ const Persons = ({persons, filter}) => {
     return (
         < ul >
         {
-            personsToShow.map(p => <Person name={p.name} phone={p.phone} />)
+            personsToShow.map(p => <Person key={p.id} person={p} />)
         }
       </ul >
     )

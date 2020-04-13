@@ -343,6 +343,86 @@ Now the App component's newNote state reflects the current value of the input, w
 
 ## Getting data from server
 
+### The browser as a runtime environment
+
+JavaScript engines, or runtime environments, follow the asynchronous model. In principle, this requires all IO-operations (with some exceptions) to be executed as non-blocking. This means that the code execution continues immediately after calling an IO function, without waiting for it to return.
+
+When an asynchronous operation is completed, or more specifically, at some point after its completion, the JavaScript engine calls the event handlers registered to the operation.
+
+Currently, JavaScript engines are single-threaded, which means that they cannot execute code in parallel. As a result, it is a requirement in practise to use a non-blocking model for executing IO operations. Otherwise, the browser would "freeze" during, for instance, the fetching of data from a server.
+
+Another consequence of this single threaded nature of Javascript engines is that if some code execution takes up a lot of time, the browser will get stuck for the duration of the execution.
+
+For the browser to remain responsive, i.e. to be able to continuously react to user operations with sufficient speed, the code logic needs to be such that no single computation can take too long.
+
+In today's browsers, it is possible to run parallelized code with the help of so-called web workers. The event loop of an individual browser window is, however, still only handled by a single thread.
+
+### axios and promises
+
+Axios' method get returns a promise. The documentation on Mozilla's site states the following about promises:
+
+> A Promise is an object representing the eventual completion or failure of an asynchronous operation.
+
+In other words, a promise is an object that represents an asynchronous operation. A promise can have three distinct states:
+
+* The promise is pending: It means that the final value (one of the following two) is not available yet.
+* The promise is fulfilled: It means that the operation has completed and the final value is available, which generally is a successful operation. This state is sometimes also called resolved.
+* The promise is rejected: It means that an error prevented the final value from being determined, which generally represents a failed operation.
+
+If, and when, we want to access the result of the operation represented by the promise, we must register an event handler to the promise. This is achieved using the method `then`:
+
+	const promise = axios.get('http://localhost:3001/notes')
+
+	promise.then(response => {
+	  console.log(response)
+	})
+
+Storing the promise object in a variable is generally unnecessary, and it's instead common to chain the then method call to the axios method call:
+
+	axios
+	  .get('http://localhost:3001/notes')
+	  .then(response => {
+		const notes = response.data
+		console.log(notes)
+	  })
+
+The data returned by the server is plain text, basically just one long string. The axios library is still able to parse the data into a Javascript array, since the server has specified that the data format is application/json; charset=utf-8 using the content-type header.
+
+We can finally begin using the data fetched from the server.
+
+### Effect-hooks
+
+We have already used state hooks which provide state to React components defined as functions. Version 16.8.0 also introduces the effect hooks as a new feature. In the words of the docs:
+
+> The Effect Hook lets you perform side effects in function components. Data fetching, setting up a subscription, and manually changing the DOM in React components are all examples of side effects.
+
+As such, effect hooks are precisely the right tool to use when fetching data from a server.
+
+	const App = () => {
+	  const [notes, setNotes] = useState([])
+
+	  useEffect(() => {
+		axios
+		  .get('http://localhost:3001/notes')
+		  .then(response => {
+			setNotes(response.data)
+		  })
+	  }, [])
+
+The effect is executed immediately after rendering. The execution of the function results in effect being printed to the console, and the command axios.get initiates the fetching of data from the server as well as registers a function as an event handler for the operation.
+
+When data arrives from the server, the JavaScript runtime calls the function registered as the event handler, which stores the notes received from the server into the state using the function `setNotes(response.data)`.
+
+As always, a call to a state-updating function triggers the re-rendering of the component. As a result, the notes fetched from the server are rendered to the screen.
+
+`useEffect` actually takes two parameters. The first is a function, the effect itself. According to the documentation:
+
+> By default, effects run after every completed render, but you can choose to fire it only when certain values have changed.
+
+So by default the effect is always run after the component has been rendered. In our case, however, we only want to execute the effect along with the first render.
+
+The second parameter of useEffect is used to specify how often the effect is run. If the second parameter is an empty array [], then the effect is only run along with the first render of the component.
+
 ## Altering data in server
 
 ## Adding styles to React app

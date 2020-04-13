@@ -11,6 +11,7 @@ const Form = ({newName, setNewName, newPhone, setNewPhone, persons, setPersons})
       }
 
       const newPerson = {
+          id: persons.length + 1,
           name: newName,
           phone: newPhone,
       }
