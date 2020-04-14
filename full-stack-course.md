@@ -500,5 +500,115 @@ In the spirit of the single responsibility principle, we deem it wise to extract
 
 The module returns an object that has three functions as its properties that deal with notes. The functions directly return the promises returned by the axios methods.
 
+Since the names of the keys and the assigned variables are the same, we can write the object definition with more compact syntax:
+
+	export default { getAll, create, update }
+
+### Promises and errors
+
+The rejection of a promise is handled by providing the `then` method with a second callback function, which is called in the situation where the promise is rejected.
+
+The more common way of adding a handler for rejected promises is to use the `catch` method.
+
+	axios
+	  .get('http://example.com/probably_will_fail')
+	  .then(response => {
+		console.log('success!')
+	  })
+	  .catch(error => {
+		console.log('fail')
+	  })
+
+The catch method is often utilized by placing it deeper within the promise chain.
+
 ## Adding styles to React app
+
+Let's add a new *index.css* file under the *src* directory and then add it to the application by importing it in the *index.js* file:
+
+    import './index.css'
+
+Let's add the following CSS rule to the *index.css* file:
+
+    h1 {
+      color: green;
+    }
+
+CSS rules comprise of *selectors* and *declarations*. The selector defines which elements the rule should be applied to. The selector above is *h1*, which will match all of the *h1* header tags in our application.
+
+There are many ways of matching elements by using [different types of CSS selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors).
+
+Using element types for defining CSS rules is slightly problematic. If our application contained other *li* tags, the same style rule would also be applied to them.
+
+If we want to apply our style specifically to notes, then it is better to use [class selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/Class_selectors).
+
+In regular HTML, classes are defined as the value of the *class* attribute:
+
+    <li class="note">some text...</li>
+
+In React we have to use the [className](https://reactjs.org/docs/dom-elements.html#classname) attribute instead of the class attribute. With this in mind, let's make the following changes to our *Note* component:
+
+      return (
+        <li className='note'>      {note.content} 
+          <button onClick={toggleImportance}>{label}</button>
+        </li>
+      )
+
+Class selectors are defined with the *.classname* syntax:
+
+    .note {
+      color: grey;
+      padding-top: 5px;
+      font-size: 15px;
+    }
+
+If you now add other *li* elements to the application, they will not be affected by the style rule above.
+
+### Inline styles
+
+React also makes it possible to write styles directly in the code as so-called [inline styles](https://react-cn.github.io/react/tips/inline-styles.html).
+
+Any React component or element can be provided with a set of CSS properties as a JavaScript object through the [style](https://reactjs.org/docs/dom-elements.html#style) attribute.
+
+CSS rules are defined slightly differently in JavaScript than in normal CSS files. Let's say that we wanted to give some element the color green and italic font that's 16 pixels in size. In CSS, it would look like this:
+
+    {
+      color: green;
+      font-style: italic;
+      font-size: 16px;
+    }
+
+But as a React inline style object it would look like this:
+
+``` 
+ {
+  color: 'green',
+  fontStyle: 'italic',
+  fontSize: 16
+}
+```
+
+Every CSS property is defined as a separate property of the JavaScript object. Numeric values for pixels can be simply defined as integers. One of the major differences compared to regular CSS, is that hyphenated (kebab case) CSS properties are written in camelCase.
+
+Next, we could add a "bottom block" to our application by creating a *Footer* component and define the following inline styles for it:
+
+    const Footer = () => {
+      const footerStyle = {
+        color: 'green',
+        fontStyle: 'italic',
+        fontSize: 16
+      }
+    
+      return (
+        <div style={footerStyle}>
+          <br />
+          <em>Note app, Department of Computer Science, University of Helsinki 2020</em>
+        </div> 
+      )
+    }
+    
+Inline styles and some of the other ways of adding styles to React components go completely against the grain of old conventions. Traditionally, it has been considered the best practice to entirely separate CSS from the content (HTML) and functionality (JavaScript). According to this older school of thought, the goal was to write CSS, HTML, and JavaScript into their separate files.
+
+The philosophy of React is, in fact, the polar opposite of this. Since the separation of CSS, HTML, and JavaScript into separate files did not seem to scale well in larger applications, React bases the division of the application along the lines of its logical functional entities.
+
+The structural units that make up the application's functional entities are React components. A React component defines the HTML for structuring the content, the JavaScript functions for determining functionality, and also the component's styling; all in one place. This is to create individual components that are as independent and reusable as possible.
 

@@ -1,12 +1,17 @@
 import React, { useState } from 'react'
 import personService from '../services/persons'
 
-const Form = ({persons, setPersons}) => {
+const Form = ({persons, setPersons, setMsg}) => {
   const [ newName, setNewName ] = useState('')
   const [ newPhone, setNewPhone ] = useState('')
 
   const handleNameChange = (e) => setNewName(e.target.value)
   const handlePhoneChange = (e) => setNewPhone(e.target.value)
+
+  const setMsgTmp = (text, color) => {
+      setMsg({text, color})
+      setTimeout(() => setMsg(null), 5000)
+  }
 
   const addPerson = (e) => {
       e.preventDefault();
@@ -27,8 +32,12 @@ const Form = ({persons, setPersons}) => {
             .then((returnedObject) => {
                 const newPersons = persons.map(p => p.id !== returnedObject.id ? p : personObject)
                 setPersons(newPersons)
+                setMsgTmp(`Updated ${personObject.name}`, 'green')
             })
-
+            .catch(e => {
+                setPersons(persons.filter(p => p.id !== existingObject.id))
+                setMsgTmp(`Information of ${personObject.name} has already been deleted`, 'red')
+            })
       }
       else {
           const personObject = {
@@ -42,6 +51,7 @@ const Form = ({persons, setPersons}) => {
                   const newPersons = persons.concat(returnedPerson)
                   setPersons(newPersons)
               })
+          setMsgTmp(`Created ${personObject.name}`, 'green')
       }
 
       setNewName('')
@@ -61,7 +71,6 @@ const Form = ({persons, setPersons}) => {
             <div>
                 <button type="submit">add</button>
             </div>
-
         </form>
     )
 }
