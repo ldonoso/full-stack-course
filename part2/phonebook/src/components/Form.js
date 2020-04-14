@@ -1,24 +1,49 @@
-import React from 'react'
+import React, { useState } from 'react'
+import personService from '../services/persons'
 
-const Form = ({newName, setNewName, newPhone, setNewPhone, persons, setPersons}) => {
+const Form = ({persons, setPersons}) => {
+  const [ newName, setNewName ] = useState('')
+  const [ newPhone, setNewPhone ] = useState('')
+
   const handleNameChange = (e) => setNewName(e.target.value)
   const handlePhoneChange = (e) => setNewPhone(e.target.value)
 
   const addPerson = (e) => {
-      if (persons.find(p => p.name === newName)) {
-        alert('the name already exists')
-        return
-      }
-
-      const newPerson = {
-          id: persons.length + 1,
-          name: newName,
-          phone: newPhone,
-      }
-
       e.preventDefault();
-      const newPersons = persons.concat(newPerson)
-      setPersons(newPersons)
+
+      const existingObject = persons.find(p => p.name === newName)
+      if (existingObject) {
+        if (!window.confirm('the name already exists. Overwrite?')) {
+            return
+        }
+
+        const personObject = {
+            ...existingObject,
+            number: newPhone
+        }
+
+        personService
+            .update(existingObject.id, personObject)
+            .then((returnedObject) => {
+                const newPersons = persons.map(p => p.id !== returnedObject.id ? p : personObject)
+                setPersons(newPersons)
+            })
+
+      }
+      else {
+          const personObject = {
+              name: newName,
+              number: newPhone,
+          }
+
+          personService
+              .create(personObject)
+              .then(returnedPerson => {
+                  const newPersons = persons.concat(returnedPerson)
+                  setPersons(newPersons)
+              })
+      }
+
       setNewName('')
       setNewPhone('')
   }

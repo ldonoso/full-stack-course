@@ -425,5 +425,80 @@ The second parameter of useEffect is used to specify how often the effect is run
 
 ## Altering data in server
 
+### REST
+
+In REST terminology, we refer to individual data objects, such as the notes in our application, as resources. Every resource has a unique address associated with it - its URL. According to a general convention used by json-server, we would be able to locate an individual note at the resource URL `notes/3`, where 3 is the id of the resource. The notes url, on the other hand, would point to a resource collection containing all the notes.
+
+Creating a new resource for storing a note is done by making an HTTP POST request to the notes URL according to the REST convention that the json-server adheres to. The data for the new note resource is sent in the body of the request.
+
+### Sending data to the server
+
+    const noteObject = {
+        content: newNote,
+        date: new Date().toISOString(),
+        important: Math.random() < 0.5,
+    }
+
+    axios
+        .post('http://localhost:3001/notes', noteObject)    
+        .then(response => {      
+                setNotes(notes.concat(response.data))      
+                setNewNote('')
+        })
+
+We create a new object for the note but omit the id property, since it's better to let the server generate ids for our resources!
+
+Since the data we sent in the POST request was a JavaScript object, axios automatically knew to set the appropriate application/json value for the Content-Type header.
+
+The newly created note resource is stored in the value of the data property of the response object.
+
+Once the data returned by the server starts to have an effect on the behavior of our web applications, we are immediately faced with a whole new set of challenges arising from, for instance, the asynchronicity of communication. This necessitates new debugging strategies, console logging and other means of debugging become increasingly more important, and we must also develop a sufficient understanding of the principles of both the JavaScript runtime and React components. Guessing won't be enough.
+
+### Changing the importance of notes
+
+Individual notes stored in the json-server backend can be modified in two different ways by making HTTP requests to the note's unique URL.
+
+* We can either replace the entire note with an HTTP PUT request,
+* or only change some of the note's properties with an HTTP PATCH request.
+
+	const toggleImportanceOf = id => {
+		const url = `http://localhost:3001/notes/${id}`
+		const note = notes.find(n => n.id === id)
+		const changedNote = { ...note, important: !note.important }
+
+		axios.put(url, changedNote).then(response => {
+		  setNotes(notes.map(note => note.id !== id ? note : response.data))
+		})
+	}
+
+This we create a new object that is an exact copy of the old note, apart from the `important` property.  Why did we make a copy of the note object we wanted to modify? The variable note is a reference to an item in the notes array in the component's state, and as we recall we must never mutate state directly in React. 
+
+### Extracting communication with the backend into a separate module
+
+In the spirit of the single responsibility principle, we deem it wise to extract this communication into its own module.
+
+	import axios from 'axios'
+	const baseUrl = 'http://localhost:3001/notes'
+
+	const getAll = () => {
+	  return axios.get(baseUrl)
+	}
+
+	const create = newObject => {
+	  return axios.post(baseUrl, newObject)
+	}
+
+	const update = (id, newObject) => {
+	  return axios.put(`${baseUrl}/${id}`, newObject)
+	}
+
+	export default { 
+	  getAll: getAll, 
+	  create: create, 
+	  update: update 
+	}
+
+The module returns an object that has three functions as its properties that deal with notes. The functions directly return the promises returned by the axios methods.
+
 ## Adding styles to React app
 
