@@ -612,3 +612,623 @@ The philosophy of React is, in fact, the polar opposite of this. Since the separ
 
 The structural units that make up the application's functional entities are React components. A React component defines the HTML for structuring the content, the JavaScript functions for determining functionality, and also the component's styling; all in one place. This is to create individual components that are as independent and reusable as possible.
 
+# Part 3: Programming a server with NodeJS and Express
+
+## Node.js and Express
+
+We will be building our backend on top of [NodeJS](https://nodejs.org/en/), which is a JavaScript runtime based on Google's [Chrome V8](https://developers.google.com/v8/) JavaScript engine.
+
+Let's navigate to an appropriate directory, and create a new template for our application with the *npm init* command. We will answer the questions presented by the utility, and the result will be an automatically generated *package.json* file at the root of the project, that contains information about the project.
+
+    {
+      "name": "backend",
+      "version": "0.0.1",
+      "description": "",
+      "main": "index.js",
+      "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+      },
+      "author": "Matti Luukkainen",
+      "license": "MIT"
+    }
+
+The file defines, for instance, that the entry point of the application is the *index.js* file.
+
+Let's make a small change to the *scripts* object:
+
+    {
+      // ...
+      "scripts": {
+        "start": "node index.js",    
+        "test": "echo \"Error: no test specified\" && exit 1"
+      },
+      // ...
+    }
+
+Next, let's create the first version of our application by adding an *index.js* file to the root of the project with the following code:
+
+    console.log('hello world')
+
+We can run the program directly with Node from the command line:
+
+    node index.js
+
+Or we can run it as an [npm script](https://docs.npmjs.com/misc/scripts):
+
+    npm start
+
+### Simple web server
+
+Let's change the application into a web server:
+
+    const http = require('http')
+    
+    const app = http.createServer((req, res) => {
+      res.writeHead(200, { 'Content-Type': 'text/plain' })
+      res.end('Hello World')
+    })
+    
+    const port = 3001
+    app.listen(port)
+    console.log(`Server running on port ${port}`)
+
+We can open our humble application in the browser by visiting the address <http://localhost:3001>.
+
+Let's take a closer look at the first line of the code:
+
+    const http = require('http')
+
+In the first row, the application imports Node's built-in [web server](https://nodejs.org/docs/latest-v8.x/api/http.html) module. This is practically what we have already been doing in our browser-side code, but with a slightly different syntax:
+
+    import http from 'http'
+
+These days, code that runs in the browser uses ES6 modules. Modules are defined with an [export](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) and taken into use with an [import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import).
+
+However, Node.js uses so-called [CommonJS](https://en.wikipedia.org/wiki/CommonJS) modules. The reason for this is that the Node ecosystem had a need for modules long before JavaScript supported them in the language specification. At the time of writing this material, Node does not support ES6 modules, but support for them [is coming](https://nodejs.org/api/esm.html) somewhere down the road.
+
+CommonJS modules function almost exactly like ES6 modules, at least as far as our needs in this course are concerned.
+
+The primary purpose of the backend server in this course is to offer raw data in the JSON format to the frontend. For this reason, let's immediately change our server to return a hardcoded list of notes in the JSON format:
+
+    const http = require('http')
+
+    let notes = [{
+        id: 1,
+        content: "HTML is easy",
+        date: "2019-05-30T17:30:31.098Z",
+        important: true
+    }, {
+        id: 2,
+        content: "Browser can execute only Javascript",
+        date: "2019-05-30T18:39:34.091Z",
+        important: false
+    }, {
+        id: 3,
+        content: "GET and POST are the most important methods of HTTP protocol",
+        date: "2019-05-30T19:20:14.298Z",
+        important: true
+    }]
+
+    const app = http.createServer((request, response) => {
+        response.writeHead(200, {
+            'Content-Type': 'application/json'
+        })
+        response.end(JSON.stringify(notes))
+    })
+    const port = 3001
+    app.listen(port)
+    console.log(`Server running on port ${port}`)
+
+### Express
+
+Implementing our server code directly with Node's built-in http web server is possible. However, it is cumbersome, especially once the application grows in size.
+
+Many libraries have been developed to ease server side development with Node, by offering a more pleasing interface to work with than the built-in http module. By far the most popular library intended for this purpose is [express](http://expressjs.com).
+
+Let's take express into use by defining it as a project dependency with the command:
+
+    npm install express --save
+
+What does the caret in front of the version number in *package.json* mean?
+
+    "express": "^4.17.1"
+
+The caret in the front of *^4.17.1* means, that if and when the dependencies of a project are updated, the version of express that is installed will be at least *4.17.1*. However, the installed version of express can also be one that has a larger *patch* number (the last number), or a larger *minor* number (the middle number). The major version of the library indicated by the first *major* number must be the same.
+
+We can update the dependencies of the project with the command:
+
+    npm update
+
+Likewise, if we start working on the project on another computer, we can install all up-to-date dependencies of the project defined in *package.json* with the command:
+
+    npm install
+
+### Web and express
+
+Let's get back to our application and make the following changes:
+
+    const express = require('express')
+    const app = express()
+    
+    let notes = [
+      ...
+    ]
+    
+    app.get('/', (req, res) => {
+      res.send('<h1>Hello World!</h1>')
+    })
+    
+    app.get('/api/notes', (req, res) => {
+      res.json(notes)
+    })
+    
+    const PORT = 3001
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`)
+    })
+
+Right at the beginning of our code we're importing *express*, which this time is a *function* that is used to create an express application stored in the *app* variable.
+
+Next, we define two *routes* to the application. The first one defines an event handler, that is used to handle HTTP GET requests made to the application's root:
+
+    app.get('/', (request, response) => {
+      response.send('<h1>Hello World!</h1>')
+    })
+
+The event handler function accepts two parameters. The first [request](http://expressjs.com/en/4x/api.html#req) parameter contains all of the information of the HTTP request, and the second [response](http://expressjs.com/en/4x/api.html#res) parameter is used to define how the request is responded to.
+
+In our code, the request is answered by using the [send](http://expressjs.com/en/4x/api.html#res.send) method of the *response* object. Calling the method makes the server respond to the HTTP request by sending a response containing the string `<h1>Hello World!</h1>`, that was passed to the *send* method. Since the parameter is a string, express automatically sets the value of the *Content-Type* header to be *text/html*. The status code of the response defaults to 200.
+
+We can verify this from the *Network* tab in developer tools.
+
+The second route defines an event handler, that handles HTTP GET requests made to the *notes* path of the application:
+
+    app.get('/api/notes', (request, response) => {
+      response.json(notes)
+    })
+
+The request is responded to with the [json](http://expressjs.com/en/4x/api.html#res.json) method of the *response* object. Calling the method will send the **notes** array that was passed to it as a JSON formatted string. Express automatically sets the *Content-Type* header with the appropriate value of *application/json*.
+
+You can start the interactive node-repl by typing in *node* in the command line. The repl is particularly useful for testing how commands work while you're writing application code. I highly recommend this\!
+
+### nodemon
+
+If we make changes to the application's code we have to restart the application in order to see the changes. Compared to the convenient workflow in React where the browser automatically reloaded after changes were made, this feels slightly cumbersome.
+
+The solution to this problem is [nodemon](https://github.com/remy/nodemon):
+
+> nodemon will watch the files in the directory in which nodemon was started, and if any files change, nodemon will automatically restart your node application.
+
+Let's install nodemon by defining it as a *development dependency* with the command:
+
+    npm install --save-dev nodemon
+
+We can start our application with *nodemon* like this:
+
+    node_modules/.bin/nodemon index.js
+
+It's worth noting, that even though the backend server restarts automatically, the browser still has to be manually refreshed. This is because unlike when working in React, we could not even have the [hot reload](https://gaearon.github.io/react-hot-loader/getstarted/) functionality needed to automatically reload the browser.
+
+The command is long and quite unpleasant, so let's define a dedicated *npm script* for it in the *package.json* file:
+
+    {
+      // ..
+      "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+      },
+      // ..
+    }
+
+In the script there is no need to specify the `node_modules/.bin/nodemon` path to nodemon, because *npm* automatically knows to search for the file from that directory.
+
+We can now start the server in the development mode with the command:
+
+    npm run dev
+
+Unlike with the *start* and *test* scripts, we also have to add *run* to the command.
+
+### REST
+
+Let's expand our application so that it provides the RESTful HTTP API as [json-server](https://github.com/typicode/json-server#routes).
+
+Representational State Transfer, aka. REST was introduced in 2000 in Roy Fielding's [dissertation](https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm). REST is an architectural style meant for building scalable web applications.
+
+We are not going to dig into Fielding's definition of REST or spend time pondering about what is and isn't RESTful. Instead, we take a more [narrow view](https://en.wikipedia.org/wiki/Representational_state_transfer#Applied_to_Web_services) by only concerning ourselves with how RESTful API's are typically understood in web applications. The original definition of REST is in fact not even limited to web applications.
+
+We mentioned in the [previous part](/en/part2/altering_data_in_server#rest) that singular things, like notes in the case of our application, are called *resources* in RESTful thinking. Every resource has an associated URL which is the resource's unique address.
+
+One convention is to create the unique address for resources by combining the name of the resource type with the resource's unique identifier.
+
+Let's assume that the root URL of our service is *www.example.com/api*.
+
+If we define the resource type of notes to be *note*, then the address of a note resource with the identifier 10, has the unique address *www.example.com/api/notes/10*.
+
+The URL for the entire collection of all note resources is *www.example.com/api/notes*.
+
+We can execute different operations on resources. The operation to be executed is defined by the HTTP *verb*:
+
+| URL      | verb   | functionality                                                    |
+| -------- | ------ | ---------------------------------------------------------------- |
+| notes/10 | GET    | fetches a single resource                                        |
+| notes    | GET    | fetches all resources in the collection                          |
+| notes    | POST   | creates a new resource based on the request data                 |
+| notes/10 | DELETE | removes the identified resource                                  |
+| notes/10 | PUT    | replaces the entire identified resource with the request data    |
+| notes/10 | PATCH  | replaces a part of the identified resource with the request data |
+|          |        |                                                                  |
+
+This is how we manage to roughly define what REST refers to as a [uniform interface](https://en.wikipedia.org/wiki/Representational_state_transfer#Architectural_constraints), which means a consistent way of defining interfaces that makes it possible for systems to co-operate.
+
+This way of interpreting REST falls under the [second level of RESTful maturity](https://martinfowler.com/articles/richardsonMaturityModel.html) in the Richardson Maturity Model. According to the definition provided by Roy Fielding, we have not actually defined a [REST API](http://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven). In fact, a large majority of the world's purported "REST" API's do not meet Fielding's original criteria outlined in his dissertation.
+
+In some places (see e.g. [Richardson, Ruby: RESTful Web Services](http://shop.oreilly.com/product/9780596529260.do)) you will see our model for a straightforward [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) API, being referred to as an example of [resource oriented architecture](https://en.wikipedia.org/wiki/Resource-oriented_architecture) instead of REST. We will avoid getting stuck arguing semantics and instead return to working on our application.
+
+### Fetching a single resource
+
+Let's expand our application so that it offers a REST interface for operating on individual notes. First let's create a [route](http://expressjs.com/en/guide/routing.html) for fetching a single resource.
+
+The unique address we will use for an individual note is of the form *notes/10*.
+
+We can define [parameters](http://expressjs.com/en/guide/routing.html#route-parameters) for routes in express by using the colon syntax:
+
+    app.get('/api/notes/:id', (request, response) => {
+      const id = request.params.id
+      const note = notes.find(note => note.id === id)
+      response.json(note)
+    })
+
+Now `app.get('/api/notes/:id', ...)` will handle all HTTP GET requests, that are of the form */api/notes/SOMETHING*, where *SOMETHING* is an arbitrary string.
+
+When we test our application by going to <http://localhost:3001/api/notes/1> in our browser, we notice that it does not appear to work, as the browser displays an empty page. It's time to debug.
+
+    app.get('/api/notes/:id', (request, response) => {
+      const id = request.params.id
+      console.log(id)
+      const note = notes.find(note => note.id === id)
+      console.log(note)
+      response.json(note)
+    })
+
+When we visit <http://localhost:3001/api/notes/1> again in the browser, the console which is the terminal in this case, will display the following:
+
+    Server running on port 3001
+    string
+    undefined
+
+To further our investigation, we also add a console log inside the comparison function passed to the *find* method.
+
+    app.get('/api/notes/:id', (request, response) => {
+      const id = request.params.id
+      const note = notes.find(note => {
+        console.log(note.id, typeof note.id, id, typeof id, note.id === id)
+        return note.id === id
+      })
+      console.log(note)
+      response.json(note)
+    })
+
+When we visit the URL again in the browser, each call to the comparison function prints a few different things to the console. The console output is the following:
+
+``` 
+
+1 'number' '1' 'string' false
+2 'number' '1' 'string' false
+3 'number' '1' 'string' false
+```
+
+!!The `id` variable contains a string '1', whereas the id's of notes are integers. In JavaScript, the "triple equals" comparison === considers all values of different types to not be equal by default.
+
+Let's fix the issue by changing the id parameter from a string into a [number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number):
+
+    app.get('/api/notes/:id', (request, response) => {
+      const id = Number(request.params.id)
+      const note = notes.find(note => note.id === id)
+      response.json(note)
+    })
+
+However, there's another problem with our application.
+
+If we search for a note with an id that does not exist, the server responds with a status code 200, which means that the response succeeded. There is no data sent back with the response, since the value of the *content-length* header is 0, and the same can be verified from the browser.
+
+The reason for this behavior is that the *note* variable is set to *undefined* if no matching note is found. The situation needs to be handled on the server in a better way. If no note is found, the server should respond with the status code [404 not found](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.5) instead of 200.
+
+Let's make the following change to our code:
+
+    app.get('/api/notes/:id', (request, response) => {
+        const id = Number(request.params.id)
+        const note = notes.find(note => note.id === id)
+
+        if (note) {
+            response.json(note)
+        } else {
+            response.status(404).end()
+        }
+    })
+
+Since no data is attached to the response, we use the [status](http://expressjs.com/en/4x/api.html#res.status) method for setting the status, and the [end](http://expressjs.com/en/4x/api.html#res.end) method for responding to the request without sending any data.
+
+The if-condition leverages the fact that all JavaScript objects are [truthy](https://developer.mozilla.org/en-US/docs/Glossary/Truthy), meaning that they evaluate to true in a comparison operation. However, *undefined* is [falsy](https://developer.mozilla.org/en-US/docs/Glossary/Falsy) meaning that it will evaluate to false.
+
+Our application works and sends the error status code if no note is found. However, the application doesn't return anything to show to the user, like web applications normally do when we visit a page that does not exist. We do not actually need to display anything in the browser because REST API's are interfaces that are intended for programmatic use, and the error status code is all that is needed.
+
+### Deleting resources
+
+Next let's implement a route for deleting resources.
+
+    app.delete('/api/notes/:id', (request, response) => {
+      const id = Number(request.params.id)
+      notes = notes.filter(note => note.id !== id)
+    
+      response.status(204).end()
+    })
+
+If deleting the resource is successful, meaning that the note exists and it is removed, we respond to the request with the status code [204 no content](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.5) and return no data with the response.
+
+There's no consensus on what status code should be returned to a DELETE request if the resource does not exist. Really, the only two options are 204 and 404. For the sake of simplicity our application will respond with 204 in both cases.
+
+### Postman
+
+So how do we test the delete operation? We could write some JavaScript for testing deletion, but writing test code is not always the best solution in every situation.
+
+Many tools exist for making the testing of backends easier. One of these is the command line program [curl](https://curl.haxx.se) that was mentioned briefly in the previous part of the material.
+
+Instead of curl, we will take a look at using [Postman](https://www.getpostman.com/) for testing the application.
+
+Using Postman is quite easy in this situation. It's enough to define the url and then select the correct request type (DELETE).
+
+The backend server appears to respond correctly. By making an HTTP GET request to <http://localhost:3001/api/notes> we see that the note with the id 2 is no longer in the list, which indicates that the deletion was successful.
+
+### The Visual Studio Code REST client
+
+If you use Visual Studio Code, you can use the VS Code [REST client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) plugin instead of Postman.
+
+Once the plugin is installed, using it is very simple. We make a directory at the root of application named *requests*. We save all the REST client requests in the directory as files that end with the *.rest* extension.
+
+Let's create a new `get_all__notes.rest` file and define the request that fetches all notes.
+
+By clicking the *Send Request* text, the REST client will execute the HTTP request and response from the server is opened in the editor.
+
+### Receiving data
+
+Next, let's make it possible to add new notes to the server. Adding a note happens by making an HTTP POST request to the address <http://localhost:3001/api/notes>, and by sending all the information for the new note in the request [body](https://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7) in the JSON format.
+
+In order to access the data easily, we need the help of the express [json-parser](https://expressjs.com/en/api.html), that is taken to use with command `app.use(express.json())`.
+
+Let's activate the json-parser and implement an initial handler for dealing with the HTTP POST requests:
+
+    const express = require('express')
+    const app = express()
+    
+    app.use(express.json())
+    
+    //...
+    
+    app.post('/api/notes', (request, response) => {
+      const note = request.body
+      console.log(note)
+    
+      response.json(note)
+    })
+
+The event handler function can access the data from the *body* property of the *request* object.
+
+Without the json-parser, the *body* property would be undefined. The json-parser functions so that it takes the JSON data of a request, transforms it into a JavaScript object and then attaches it to the *body* property of the *request* object before the route handler is called.
+
+Before we implement the rest of the application logic, let's verify with Postman that the data is actually received by the server. In addition to defining the URL and request type in Postman, we also have to define the data sent in the *body*.
+
+**NB** *Keep the terminal running the application visible at all times* when you are working on the backend. Thanks to Nodemon any changes we make to the code will restart the application. If you pay attention to the console, you will immediately be able to pick up on errors that occur in the application.
+
+Similarly, it is useful to check the console for making sure that the backend behaves like we expect it to in different situations, like when we send data with an HTTP POST request. Naturally, it's a good idea to add lots of *console.log* commands to the code while the application is still being developed.
+
+A potential cause for issues is an incorrectly set *Content-Type* header in requests. This can happen with Postman if the type of body is not defined correctly.
+
+The *Content-Type* header is set to *text/plain*.
+
+The server appears to only receive an empty object:
+
+    {}
+
+The server will not be able to parse the data correctly without the correct value in the header. It won't even try to guess the format of the data, since there's a [massive amount](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types) of potential *Content-Types*.
+
+If you are using VS Code, then you should install the REST client from the previous chapter *now, if you haven't already*. The POST request can be sent with the REST client like this:
+
+    POST http://localhost:3001/api/notes
+    Content-type: application/json
+
+    {
+        "content": "VS Code REST client",
+        "important": false
+    }
+
+One benefit that the REST client has over Postman is that the requests are handily available at the root of the project repository, and they can be distributed to everyone in the development team. Postman also allows users to save requests, but the situation can get quite chaotic especially when you're working on multiple unrelated projects.
+
+> **Important sidenote**
+> 
+> Sometimes when you're debugging, you may want to find out what headers have been set in the HTTP request. One way of accomplishing this is through the [get](http://expressjs.com/en/4x/api.html#req.get) method of the *request* object, that can be used for getting the value of a single header. The *request* object also has the *headers* property, that contains all of the headers of a specific request.
+
+> Problems can occur with the VS REST client if you accidentally add an empty line between the top row and the row specifying the HTTP headers. In this situation, the REST client interprets this to mean that all headers are left empty, which leads to the backend server not knowing that the data it has received is in the JSON format.
+
+You will be able to spot this missing *Content-Type* header if at some point in your code you print all of the request headers with the *console.log(request.headers)* command.
+
+Let's return to the application. Once we know that the application receives data correctly, it's time to finalize the handling of the request:
+
+    app.post('/api/notes', (request, response) => {
+      const maxId = notes.length > 0
+        ? Math.max(...notes.map(n => n.id)) 
+        : 0
+    
+      const note = request.body
+      note.id = maxId + 1
+    
+      notes = notes.concat(note)
+    
+      response.json(note)
+    })
+
+We need a unique id for the note. First, we find out the largest id number in the current list and assign it to the *maxId* variable. The id of the new note is then defined as *maxId + 1*. This method is in fact not recommended, but we will live with it for now as we will replace it soon enough.
+
+The current version still has the problem that the HTTP POST request can be used to add objects with arbitrary properties. Let's improve the application by defining that the *content* property may not be empty. The *important* and *date* properties will be given default values. All other properties are discarded:
+
+    const generateId = () => {
+      const maxId = notes.length > 0
+        ? Math.max(...notes.map(n => n.id))
+        : 0
+      return maxId + 1
+    }
+    
+    app.post('/api/notes', (request, response) => {
+      const body = request.body
+    
+      if (!body.content) {
+        return response.status(400).json({ 
+          error: 'content missing' 
+        })
+      }
+    
+      const note = {
+        content: body.content,
+        important: body.important || false,
+        date: new Date(),
+        id: generateId(),
+      }
+    
+      notes = notes.concat(note)
+    
+      response.json(note)
+    })
+
+If the received data is missing a value for the *content* property, the server will respond to the request with the status code [400 bad request](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1).
+
+As mentioned previously, it is better to generate timestamps on the server than in the browser, since we can't trust that host machine running the browser has its clock set correctly. The generation of the *date* property is now done by the server.
+
+The function for generating IDs looks currently like this:
+
+    const generateId = () => {
+      const maxId = notes.length > 0
+        ? Math.max(...notes.map(n => n.id))
+        : 0
+      return maxId + 1
+    }
+
+The function body contains a row that looks a bit intriguing:
+
+    Math.max(...notes.map(n => n.id))
+
+What exactly is happening in that line of code? It creates a new array that contains all the id's of the notes. [Math.max](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max) returns the maximum value of the numbers that are passed to it. However, *notes.map(n =\> n.id)* is an *array* so it can't directly be given as a parameter to *Math.max*. The array can be transformed into individual numbers by using the "three dot" [spread](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) syntax *...*.
+
+### About HTTP request types
+
+[The HTTP standard](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html) talks about two properties related to request types, **safety** and **idempotence**.
+
+The HTTP GET request should be *safe*:
+
+> *In particular, the convention has been established that the GET and HEAD methods SHOULD NOT have the significance of taking an action other than retrieval. These methods ought to be considered "safe".*
+
+Safety means that the executing request must not cause any *side effects* in the server. By side-effects we mean that the state of the database must not change as a result of the request, and the response must only return data that already exists on the server.
+
+Nothing can ever guarantee that a GET request is actually *safe*, this is in fact just a recommendation that is defined in the HTTP standard. By adhering to RESTful principles in our API, GET requests are in fact always used in a way that they are *safe*.
+
+The HTTP standard also defines the request type [HEAD](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4), that ought to be safe. In practice HEAD should work exactly like GET but it does not return anything but the status code and response headers. The response body will not be returned when you make a HEAD request.
+
+All HTTP requests except POST should be *idempotent*:
+
+> *Methods can also have the property of "idempotence" in that (aside from error or expiration issues) the side-effects of N \> 0 identical requests is the same as for a single request. The methods GET, HEAD, PUT and DELETE share this property*
+
+This means that if a request has side-effects, then the result should be same regardless of how many times the request is sent.
+
+If we make an HTTP PUT request to the url */api/notes/10* and with the request we send the data *{ content: "no side effects\!", important: true }*, the result is the same regardless of many times the request is sent.
+
+Like *safety* for the GET request, *idempotence* is also just a recommendation in the HTTP standard and not something that can be guaranteed simply based on the request type. However, when our API adheres to RESTful principles, then GET, HEAD, PUT, and DELETE requests are used in such a way that they are idempotent.
+
+POST is the only HTTP request type that is neither *safe* nor *idempotent*. If we send 5 different HTTP POST requests to */api/notes* with a body of *{content: "many same", important: true}*, the resulting 5 notes on the server will all have the same content.
+
+### Middleware
+
+The express [json-parser](https://expressjs.com/en/api.html) we took into use earlier is a so-called [middleware](http://expressjs.com/en/guide/using-middleware.html).
+
+Middleware are functions that can be used for handling *request* and *response* objects.
+
+The json-parser we used earlier takes the raw data from the requests that's stored in the *request* object, parses it into a JavaScript object and assigns it to the *request* object as a new property *body*.
+
+In practice, you can use several middleware at the same time. When you have more than one, they're executed one by one in the order that they were taken into use in express.
+
+Let's implement our own middleware that prints information about every request that is sent to the server.
+
+Middleware is a function that receives three parameters:
+
+    const requestLogger = (request, response, next) => {
+      console.log('Method:', request.method)
+      console.log('Path:  ', request.path)
+      console.log('Body:  ', request.body)
+      console.log('---')
+      next()
+    }
+
+At the end of the function body the *next* function that was passed as a parameter is called. The *next* function yields control to the next middleware.
+
+Middleware are taken into use like this:
+
+    app.use(requestLogger)
+
+Middleware functions are called in the order that they're taken into use with the express server object's *use* method. Notice that json-parser is taken into use before the *requestLogger* middleware, because otherwise *request.body* will not be initialized when the logger is executed\!
+
+Middleware functions have to be taken into use before routes if we want them to be executed before the route event handlers are called. There are also situations where we want to define middleware functions after routes. In practice, this means that we are defining middleware functions that are only called if no route handles the HTTP request.
+
+Let's add the following middleware after our routes, that is used for catching requests made to non-existent routes. For these requests, the middleware will return an error message in the JSON format.
+
+    const unknownEndpoint = (request, response) => {
+      response.status(404).send({ error: 'unknown endpoint' })
+    }
+    
+    app.use(unknownEndpoint)
+
+You can find the code for our current application in its entirety in the *part3-2* branch of [this github repository](https://github.com/fullstack-hy2020/part3-notes-backend/tree/part3-2).
+
+### Exercises 3.7.-3.8.
+
+#### 3.7: Phonebook backend step7
+
+Add the [morgan](https://github.com/expressjs/morgan) middleware to your application for logging. Configure it to log messages to your console based on the *tiny* configuration.
+
+The documentation for Morgan is not the best, and you may have to spend some time figuring out how to configure it correctly. However, most documentation in the world falls under the same category, so it's good to learn to decipher and interpret cryptic documentation in any case.
+
+Morgan is installed just like all other libraries with the *npm install* command. Taking morgan into use happens the same as configuring any other middleware by using the *app.use* command.
+
+#### 3.8\*: Phonebook backend step8
+
+Configure morgan so that it also shows the data sent in HTTP POST requests:
+
+![fullstack content](/static/4ed4b48465d48df517158501c0be187e/14be6/24.png)
+
+This exercise can be quite challenging, even though the solution does not require a lot of code.
+
+This exercise can be completed in a few different ways. One of the possible solutions utilizes these two techniques:
+
+  - [creating new tokens](https://github.com/expressjs/morgan#creating-new-tokens)
+  - [JSON.stringify](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)
+
+[Propose changes to material](https://github.com/fullstack-hy2020/fullstack-hy2020.github.io/edit/source/src/content/3/en/part3a.md)
+
+[](/en/part2)
+
+Part 2
+
+**Previous part**
+
+[](/en/part3/deploying_app_to_internet)
+
+Part 3b
+
+**Next part**
+
+[](https://www.helsinki.fi/)
+
+![Helsingin yliopiston logo](/static/uoh_centre-3689cf9983a2ebc8089c8f078a9c4769.svg)
+
+[](https://www.houston-inc.com/)
+
+![Houston inc. logo](data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjQ3cHgiIGhlaWdodD0iODJweCIgdmlld0JveD0iMCAwIDI0NyA4MiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KICAgIDwhLS0gR2VuZXJhdG9yOiBTa2V0Y2ggNTMuMiAoNzI2NDMpIC0gaHR0cHM6Ly9za2V0Y2hhcHAuY29tIC0tPgogICAgPHRpdGxlPmxvZ28vaG91c3RvbjwvdGl0bGU+CiAgICA8ZGVzYz5DcmVhdGVkIHdpdGggU2tldGNoLjwvZGVzYz4KICAgIDxkZWZzPgogICAgICAgIDxwb2x5Z29uIGlkPSJwYXRoLTEiIHBvaW50cz0iMCAwLjAyNjcxOTI2NzMgMTM4LjIwODE2NyAwLjAyNjcxOTI2NzMgMTM4LjIwODE2NyAzNi40NjU0MzgxIDAgMzYuNDY1NDM4MSI+PC9wb2x5Z29uPgogICAgPC9kZWZzPgogICAgPGcgaWQ9ImxvZ28vaG91c3RvbiIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgaWQ9ImhvdXN0b25fc2ltcGxlLmVwcy1jb3B5LTMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU0LjU4MTg5MywgMjMuMjYzMDQwKSI+CiAgICAgICAgICAgIDxtYXNrIGlkPSJtYXNrLTIiIGZpbGw9IndoaXRlIj4KICAgICAgICAgICAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3BhdGgtMSI+PC91c2U+CiAgICAgICAgICAgIDwvbWFzaz4KICAgICAgICAgICAgPGcgaWQ9IkNsaXAtMiI+PC9nPgogICAgICAgICAgICA8cGF0aCBkPSJNODIuODA1MTI5OCwxMy41MDY2NjAzIEw4Mi44MDUxMjk4LDI1LjUzNjU1MDkgTDg1Ljk5MzYyOSwyNS41MzY1NTA5IEw4NS45OTM2MjksMTMuNTA2NjYwMyBMOTAuNDA2NTQ5MywxMy41MDY2NjAzIEw5MC40MDY1NDkzLDEwLjQ0NTY3ODQgTDc4LjM3NTEwMzYsMTAuNDQ1Njc4NCBMNzguMzc1MTAzNiwxMy41MDY2NjAzIEw4Mi44MDUxMjk4LDEzLjUwNjY2MDMgWiBNOTYuNDkxMDQ5NSwxNy45NjM2ODg1IEM5Ni40OTEwNDk1LDIwLjU1OTU1NzIgOTguMzE3ODU1NywyMi43MDc5ODQyIDEwMC44ODYxNTcsMjIuNzA3OTg0MiBDMTAzLjQ1NDg4MiwyMi43MDc5ODQyIDEwNS4yNDcxOTQsMjAuNTk1NDY1NyAxMDUuMjQ3MTk0LDE4LjAxNzk3NTMgTDEwNS4yNDcxOTQsMTguMDAwMDIxMSBDMTA1LjI0NzE5NCwxNS40MDQyOTM3IDEwMy40MjA1MjksMTMuMjU1ODY2NyAxMDAuODUyMjI4LDEzLjI1NTg2NjcgQzk4LjI4MzUwMjMsMTMuMjU1ODY2NyA5Ni40OTEwNDk1LDE1LjM2ODM4NTMgOTYuNDkxMDQ5NSwxNy45NDU3MzQzIEw5Ni40OTEwNDk1LDE3Ljk2MzY4ODUgWiBNOTMuMTQ3MDQxMywxOC4wMTc5NzUzIEw5My4xNDcwNDEzLDE3Ljk4MjA2NjkgQzkzLjE0NzA0MTMsMTMuNjg1NDk1NiA5Ni40MDQ4MTI3LDEwLjE3NjkzMDYgMTAwLjg4NjE1NywxMC4xNzY5MzA2IEMxMDUuMzY3OTI1LDEwLjE3NjkzMDYgMTA4LjU5MTM0MywxMy42NDk3Mjg1IDEwOC41OTEzNDMsMTcuOTQ1NzM0MyBMMTA4LjU5MTM0MywxNy45NjM2ODg1IEMxMDguNTkxMzQzLDIyLjI2MDI1OTggMTA1LjMzMzU3MiwyNS43Njg4MjQ3IDEwMC44NTIyMjgsMjUuNzY4ODI0NyBDOTYuMzcwMzE4LDI1Ljc2ODgyNDcgOTMuMTQ3MDQxMywyMi4zMTQxMjI0IDkzLjE0NzA0MTMsMTguMDE3OTc1MyBMOTMuMTQ3MDQxMywxOC4wMTc5NzUzIFogTTcwLjQxMTkxMzcsMjIuNzk3MDQ4NSBDNjguNzU2ODc0MiwyMi43OTcwNDg1IDY3LjM3ODIxNjYsMjIuMDgxMjgzMSA2Ni4wNjg0MDcsMjAuOTcxNzk3NCBMNjQuMTcyMTg3MiwyMy4zMTY0NDg0IEM2NS45MTMxODA4LDI0LjkyNzk0NTQgNjguMTM2Njc2MiwyNS43MzMzNDA0IDcwLjM0MzA2NTYsMjUuNzMzMzQwNCBDNzMuNDgwMTA1NSwyNS43MzMzNDA0IDc1LjY2OTI0NzYsMjQuMDUwMTY4IDc1LjY2OTI0NzYsMjEuMDYxMDAzIEw3NS42NjkyNDc2LDIxLjAyNTA5NDUgQzc1LjcyMTEzMSwxOC4zOTM0NTg4IDc0LjA0ODU2MTUsMTcuMzAxNzg1OCA3MS4xMDExMDExLDE2LjQ5NTgyNTMgQzY4LjU4NDY4MzQsMTUuODMzOTIyNiA2Ny45NjM5MTk5LDE1LjUxMTMxMjIgNjcuOTYzOTE5OSwxNC41MDg5ODYyIEw2Ny45NjM5MTk5LDE0LjQ3MzA3NzggQzY3Ljk2MzkxOTksMTMuNzM4OTM0MSA2OC42MDIyMTM1LDEzLjE2NjY2MTEgNjkuODI1NjQ0OSwxMy4xNjY2NjExIEM3MS4wNDk2NDE4LDEzLjE2NjY2MTEgNzIuMzA3OTkyMSwxMy43MjA5Nzk5IDczLjYwMDgzNywxNC42NTIwNTQ1IEw3NS4yNTU1OTM4LDEyLjE0NTk1NjkgQzczLjc4OTk5MjUsMTAuOTEwNjUwMiA3MS45ODA3MTY0LDEwLjIzMDM2OTIgNjkuODYwNTYzNywxMC4yMzAzNjkyIEM2Ni44OTU3MTQ3LDEwLjIzMDM2OTIgNjQuNzc1NTYyLDEyLjAzODY1NTcgNjQuNzc1NTYyLDE0Ljc3NzU5MjYgTDY0Ljc3NTU2MiwxNC44MTMwNzY5IEM2NC43NzU1NjIsMTcuODAyNjY2MSA2Ni42NzEwNzQ5LDE4LjY0NDUzNSA2OS41ODQxODE5LDE5LjQzMjExNzMgQzcyLjAxNDY0NTYsMjAuMDc2NjMxMiA3Mi41MTQ2Nzc2LDIwLjUwNjI2MDEgNzIuNTE0Njc3NiwyMS4zNDc3MDQ5IEw3Mi41MTQ2Nzc2LDIxLjM4MzA0NzkgQzcyLjUxNDY3NzYsMjIuMjYwMjU5OCA3MS43MjIyODg4LDIyLjc5NzA0ODUgNzAuNDExOTEzNywyMi43OTcwNDg1IEw3MC40MTE5MTM3LDIyLjc5NzA0ODUgWiBNMzEuMzM2NDY5NywxNy45NjM2ODg1IEMzMS4zMzY0Njk3LDIwLjU1OTU1NzIgMzMuMTYzNywyMi43MDc5ODQyIDM1LjczMTg1OTksMjIuNzA3OTg0MiBDMzguMzAwMTYxMSwyMi43MDc5ODQyIDQwLjA5MjQ3MjYsMjAuNTk1NDY1NyA0MC4wOTI0NzI2LDE4LjAxNzk3NTMgTDQwLjA5MjQ3MjYsMTguMDAwMDIxMSBDNDAuMDkyNDcyNiwxNS40MDQyOTM3IDM4LjI2NTI0MjMsMTMuMjU1ODY2NyAzNS42OTY5NDEsMTMuMjU1ODY2NyBDMzMuMTI5MjA1MywxMy4yNTU4NjY3IDMxLjMzNjQ2OTcsMTUuMzY4Mzg1MyAzMS4zMzY0Njk3LDE3Ljk0NTczNDMgTDMxLjMzNjQ2OTcsMTcuOTYzNjg4NSBaIE0yOC4wMDk3MDg5LDE4LjAxNzk3NTMgTDI4LjAwOTcwODksMTcuOTgyMDY2OSBDMjguMDA5NzA4OSwxMy42ODU0OTU2IDMxLjI2NzQ4MDMsMTAuMTc2OTMwNiAzNS43NDg4MjQ1LDEwLjE3NjkzMDYgQzQwLjIzMDczNDIsMTAuMTc2OTMwNiA0My40MzYxOTgsMTMuNjQ5NzI4NSA0My40NTQwMTA5LDE3Ljk0NTczNDMgTDQzLjQ1NDAxMDksMTcuOTYzNjg4NSBDNDMuNDU0MDEwOSwyMi4yNjAyNTk4IDQwLjE5NjIzOTUsMjUuNzY4ODI0NyAzNS43MTQ4OTUzLDI1Ljc2ODgyNDcgQzMxLjIzMjU2MTUsMjUuNzY4ODI0NyAyOC4wMDk3MDg5LDIyLjMxNDEyMjQgMjguMDA5NzA4OSwxOC4wMTc5NzUzIEwyOC4wMDk3MDg5LDE4LjAxNzk3NTMgWiBNNTMuODMwNDE3MSwyNS43MzMzNDA0IEM1Ny43NDI4ODEyLDI1LjczMzM0MDQgNjAuMjA3ODM5NywyMy40OTU4NDkyIDYwLjIwNzgzOTcsMTguOTMwNjcxNSBMNjAuMjA3ODM5NywxMC40MjcxNTg3IEw1Ny4wMDE4MTAzLDEwLjQyNzE1ODcgTDU3LjAwMTgxMDMsMTkuMDczNzM5OCBDNTcuMDAxODEwMywyMS40NzI2Nzc2IDU1LjgxMjMwODEsMjIuNjkwMDMgNTMuODY0NzcwNCwyMi42OTAwMyBDNTEuOTE3Mzc0MSwyMi42OTAwMyA1MC43Mjc3MzA1LDIxLjQxODk1NjMgNTAuNzI3NzMwNSwxOC45NjY1OCBMNTAuNzI3NzMwNSwxMC40MjcxNTg3IEw0Ny41Mzg2NjU4LDEwLjQyNzE1ODcgTDQ3LjUzODY2NTgsMTkuMDM3ODMxMyBDNDcuNTM4NjY1OCwyMy40Nzc4OTUgNDkuOTE3OTUzLDI1LjczMzM0MDQgNTMuODMwNDE3MSwyNS43MzMzNDA0IEw1My44MzA0MTcxLDI1LjczMzM0MDQgWiBNMy4xNTQ1NywzMy4xOTgxOTQ4IEwxMzUuMDM2NjMyLDMzLjE5ODE5NDggTDEzNS4wMzY2MzIsMy4zMDI0NDQ4OCBMMy4xNTQ1NywzLjMwMjQ0NDg4IEwzLjE1NDU3LDMzLjE5ODE5NDggWiBNMCwzNi40NzM5MjA0IEwxMzguMjA4MTY3LDM2LjQ3MzkyMDQgTDEzOC4yMDgxNjcsMC4wMjY3MTkyNjczIEwwLDAuMDI2NzE5MjY3MyBMMCwzNi40NzM5MjA0IFogTTE0LjgyMzExNDMsMTkuNDg1NDE0NCBMMjAuNzE4NjAwNSwxOS40ODU0MTQ0IEwyMC43MTg2MDA1LDI1LjUzNjU1MDkgTDIzLjkwNzY2NTIsMjUuNTM2NTUwOSBMMjMuOTA3NjY1MiwxMC40NDU2Nzg0IEwyMC43MTg2MDA1LDEwLjQ0NTY3ODQgTDIwLjcxODYwMDUsMTYuNDA2MDU0MiBMMTQuODIzMTE0MywxNi40MDYwNTQyIEwxNC44MjMxMTQzLDEwLjQ0NTY3ODQgTDExLjYzNDc1NjUsMTAuNDQ1Njc4NCBMMTEuNjM0NzU2NSwyNS41MzY1NTA5IEwxNC44MjMxMTQzLDI1LjUzNjU1MDkgTDE0LjgyMzExNDMsMTkuNDg1NDE0NCBaIE0xMTUuODY0OTIyLDE1Ljk0MTUwNjUgTDEyMi44OTc2MDIsMjUuNTM2NTUwOSBMMTI1LjYyMDk4OCwyNS41MzY1NTA5IEwxMjUuNjIwOTg4LDEwLjQ0NTY3ODQgTDEyMi40NjY0MTgsMTAuNDQ1Njc4NCBMMTIyLjQ2NjQxOCwxOS43MzYyMDggTDExNS42NTgzNzcsMTAuNDQ1Njc4NCBMMTEyLjcxMDkxNywxMC40NDU2Nzg0IEwxMTIuNzEwOTE3LDI1LjUzNjU1MDkgTDExNS44NjQ5MjIsMjUuNTM2NTUwOSBMMTE1Ljg2NDkyMiwxNS45NDE1MDY1IEwxMTUuODY0OTIyLDE1Ljk0MTUwNjUgWiIgaWQ9IkZpbGwtMSIgZmlsbD0iIzAwMDEwNSIgbWFzaz0idXJsKCNtYXNrLTIpIj48L3BhdGg+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4=)
+
+[About course](/en/about)[Course contents](/en#course-contents)[FAQ](/en/faq)[Partners](/en/companies)[Challenge](/en/challenge)
