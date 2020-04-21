@@ -1,8 +1,14 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
+
+require('dotenv').config() // load before modules
+const Person = require('./models/person')
 
 const app = express()
 app.use(express.json())
+app.use(cors())
+app.use(express.static('build'))
 
 morgan.token('body', function (req, res) {
     console.log(req.method)
@@ -12,51 +18,52 @@ morgan.token('body', function (req, res) {
 const handler = morgan(':method :url :status :res[content-length] - :response-time ms - :body')
 app.use(handler)
 
-let persons = [
-    { 
-      "name": "Arto Hellas", 
-      "number": "040-123456",
-      "id": 1
-    },
-    { 
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523",
-      "id": 2
-    },
-    { 
-      "name": "Dan Abramov", 
-      "number": "12-43-234345",
-      "id": 3
-    },
-    { 
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122",
-      "id": 4
-    }
-]
-
 const url = '/api/persons'
 
-app.get(url, (req, resp) => {
-    resp.json(persons)
+app.get(url, (req, resp, next) => {
+    Person.find({}).then(persons => {
+        resp.json(persons.map(p => p.toJSON()))
+    })
+    .catch(e => {
+        next(e)
+    })
 })
 
-app.get(`${url}/:id`, (req, resp) => {
-    const id = Number(req.params.id)
-    const person = persons.find(p => p.id === id)
-    if (!person) {
-        resp.status(404).end()
-    }
-    else {
-        resp.json(person)
-    }
+app.get(`${url}/:id`, (req, resp, next) => {
+    Person.findById(req.params.id)
+        .then(person => {
+            if (!person) {
+                resp.status(404).end()
+            }
+            else {
+                resp.json(person)
+            }
+        })
+        .catch(e => {
+            next(e)
+        })
 })
 
 app.delete(`${url}/:id`, (req, resp) => {
-    const id = Number(req.params.id)
-    persons = persons.filter(p => p.id !== id)
+    Person.findByIdAndRemove(req.params.id)
+        .then(result => {
+            resp.status(204).end()
+        })
+})
 
-    resp.status(204).end()
+app.put(`${url}/:id`, (req, resp,e ) => {
+    const body = req.body
+
+    const person = {
+        name: body.name,
+        number: body.number,
+    }
+
+    Person.findByIdAndUpdate(req.params.id, person, { new: true})
+        .then(person2 => {
+            resp.json(person2.toJSON())
+        })
+        .catch(e => next(e))
 })
 
 const getRandom = (start, end) => start + Math.floor((end - start ) * Math.random())
@@ -70,33 +77,48 @@ app.post(url, (req, resp) => {
         })
     }
 
-    if (persons.find(p => p.name === body.name)) {
-        return resp.status(400).json({
-            error: 'name already exists',
-        })
-    }
+    // if (persons.find(p => p.name === body.name)) {
+    //     return resp.status(400).json({
+    //         error: 'name already exists',
+    //     })
+    // }
 
-    const person = {
+    const person = new Person({
         name: body.name,
         number: body.number,
-        id: getRandom(1, 1000000),
-    }
+    })
 
-    persons = persons.concat(person)
-
-    resp.json(person)
+    person.save().then(person2 => {
+        resp.json(person2.toJSON())
+    })
 })
 
-app.get('/info', (req, resp) => {
-    const nPersons = persons.length
-    resp.send(`
-    <div>Phonebook as info for ${nPersons}</div>
-    <div>${Date()}</div>
-    `)
+app.get('/info', (req, resp, next) => {
+    Person.find({})
+        .then(persons => {
+            const nPersons = persons.length
+            resp.send(`
+                <div>Phonebook as info for ${nPersons}</div>
+                <div>${Date()}</div>
+                `)
+        })
+        .catch(e => next(e))
 })
 
+const errorHandler = (error, request, response, next) => {
+    console.log(error.message)
 
-const PORT = 3001
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+app.use(errorHandler)
+
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

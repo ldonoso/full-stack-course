@@ -17,7 +17,7 @@ const Persons = ({persons, setPersons, filter}) => {
         }
 
         personService.deleteObject(id).then(response => {
-            if (response.status === 200) {
+            if (response.status === 204) {
                 setPersons(persons.filter(p => p.id !== id))
             }
         });
