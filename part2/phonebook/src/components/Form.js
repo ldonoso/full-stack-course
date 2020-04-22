@@ -50,8 +50,11 @@ const Form = ({persons, setPersons, setMsg}) => {
               .then(returnedPerson => {
                   const newPersons = persons.concat(returnedPerson)
                   setPersons(newPersons)
+                  setMsgTmp(`Created ${personObject.name}`, 'green')
               })
-          setMsgTmp(`Created ${personObject.name}`, 'green')
+              .catch(error => {
+                  setMsgTmp(`${error.response.data.error}`, 'red')
+              })
       }
 
       setNewName('')

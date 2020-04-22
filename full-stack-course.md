@@ -1934,3 +1934,260 @@ Googling the error message will lead to [instructions](https://stackoverflow.com
       
     module.exports = mongoose.model('Note', noteSchema) 
 
+# Validation and ESLint
+
+There are usually constraints that we want to apply to the data that is stored in our application's database. Our application shouldn't accept notes that have a missing or empty *content* property. The validity of the note is checked in the route handler:
+
+    app.post('/api/notes', (request, response) => {
+        const body = request.body
+        if (body.content === undefined) {
+            return response.status(400).json({
+                error: 'content missing'
+            })
+        }
+        // ...
+    })
+
+One smarter way of validating the format of the data before it is stored in the database, is to use the [validation](https://mongoosejs.com/docs/validation.html) functionality available in Mongoose.
+
+We can define specific validation rules for each field in the schema:
+
+    const noteSchema = new mongoose.Schema({
+        content: {
+            type: String,
+            minlength: 5,
+            required: true
+        },
+        date: {
+            type: Date,
+            required: true
+        },
+        important: Boolean
+    })
+
+The minimum length constraint by default requires the field to not be missing.
+
+The *minlength* and *required* validators are [built-in](https://mongoosejs.com/docs/validation.html#built-in-validators) and provided by Mongoose. The Mongoose [custom validator](https://mongoosejs.com/docs/validation.html#custom-validators) functionality allows us to create new validators, if none of the built-in ones cover our needs.
+
+If we try to store an object in the database that breaks one of the constraints, the operation will throw an exception. Let's change our handler for creating a new note so that it passes any potential exceptions to the error handler middleware:
+
+    app.post('/api/notes', (request, response, next) => {
+        const body = request.body
+
+        const note = new Note({
+            content: body.content,
+            important: body.important || false,
+            date: new Date(),
+        })
+
+        note.save()
+            .then(savedNote => {
+                response.json(savedNote.toJSON())
+            })
+            .catch(error => next(error))
+    })
+
+Let's expand the error handler to deal with these validation errors:
+
+    const errorHandler = (error, request, response, next) => {
+        console.error(error.message)
+
+        if (error.name === 'CastError') {
+            return response.status(400).send({
+                error: 'malformatted id'
+            })
+        } else if (error.name === 'ValidationError') {
+            return response.status(400).json({
+                error: error.message
+            })
+        }
+
+        next(error)
+    }
+
+When validating an object fails, we return the following default error message from Mongoose:
+
+    {
+      "error": "Note validation failed: content: Path `content` (`VS 3`) is shorter than the minimum allowed length (5)."
+    }
+
+### Promise chaining
+
+Many of the route handlers changed the response data into the right format by calling the *toJSON* method. When we created a new note, the *toJSON* method was called for the object passed as a parameter to *then*:
+
+    app.post('/api/notes', (request, response, next) => {
+      // ...
+    
+      note.save()
+        .then(savedNote => {
+          response.json(savedNote.toJSON())
+        })
+        .catch(error => next(error)) 
+    })
+
+We can accomplish the same functionality in a much cleaner way with [promise chaining](https://javascript.info/promise-chaining):
+
+    app.post('/api/notes', (request, response, next) => {
+        // ...
+
+        note
+            .save()
+            .then(savedNote => {
+                return savedNote.toJSON()
+            }).then(savedAndFormattedNote => {
+                response.json(savedAndFormattedNote)
+            }).catch(error => next(error))
+    })
+
+The *then* method of a promise also returns a promise. This means that when we return *savedNote.toJSON()* from the callback function, we are actually creating a promise that receives the formatted note as its value. We can access the formatted note by registering a new callback function with the *then* method.
+
+We can clean up our code even more by using the more compact syntax for arrow functions:
+
+    app.post('/api/notes', (request, response, next) => {
+        // ...
+
+        note
+            .save()
+            .then(savedNote => savedNote.toJSON()).then(savedAndFormattedNote => {
+                response.json(savedAndFormattedNote)
+            })
+            .catch(error => next(error))
+    })
+
+In this example, Promise chaining does not provide much of a benefit. The situation would change if there were many asynchronous operations that had to be done in sequence. In the next part of the course we will learn about the *async/await* syntax in JavaScript, that will make writing subsequent asynchronous operations a lot easier.
+
+### Deploying the database backend to production
+
+The application should work almost as-is in Heroku. We do have to generate a new production build of the frontend due to the changes that we have made to our frontend.
+
+The environment variables defined in dotenv will only be used when the backend is not in *production mode*, i.e. Heroku.
+
+We defined the environment variables for development in file *.env*, but the environment variable that defines the database URL in production should be set to Heroku with the *heroku config:set* command.
+
+    heroku config:set MONGODB_URI=mongodb+srv://fullstack:secretpasswordhere@cluster0-ostce.mongodb.net/note-app?retryWrites=true
+
+**NB:** if the command causes an error, give the value of `MONGODB_URI` in apostrophes:
+
+    heroku config:set MONGODB_URI='mongodb+srv://fullstack:secretpasswordhere@cluster0-ostce.mongodb.net/note-app?retryWrites=true'
+
+The application should now work. Sometimes things don't go according to plan. If there are problems, *heroku logs* will be there to help.
+
+### Lint
+
+In the JavaScript universe, the current leading tool for static analysis aka. "linting" is [ESlint](https://eslint.org/).
+
+Let's install ESlint as a development dependency to the backend project with the command:
+
+    npm install eslint --save-dev
+
+After this we can initialize a default ESlint configuration with the command:
+
+    node_modules/.bin/eslint --init
+
+The configuration will be saved in the *.eslintrc.js* file:
+
+    module.exports = {
+        'env': {
+            'commonjs': true,
+            'es6': true,
+            'node': true
+        },
+        'extends': 'eslint:recommended',
+        'globals': {
+            'Atomics': 'readonly',
+            'SharedArrayBuffer': 'readonly'
+        },
+        'parserOptions': {
+            'ecmaVersion': 2018
+        },
+        'rules': {
+            'indent': [
+                'error',
+                4
+            ],
+            'linebreak-style': [
+                'error',
+                'unix'
+            ],
+            'quotes': [
+                'error',
+                'single'
+            ],
+            'semi': [
+                'error',
+                'never'
+            ]
+        }
+    }
+
+Inspecting and validating a file like *index.js* can be done with the following command:
+
+    node_modules/.bin/eslint index.js
+
+It is recommended to create a separate *npm script* for linting:
+
+    {
+      // ...
+      "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js",
+        // ...
+        "lint": "eslint ."
+      },
+      // ...
+    }
+
+Now the *npm run lint* command will check every file in the project. Also the files in the *build* directory get checked when the command is run. We do not want this to happen, and we can accomplish this by creating an [.eslintignore](https://eslint.org/docs/user-guide/configuring#ignoring-files-and-directories) file in the project's root with the following contents:
+
+    build
+
+This causes the entire *build* directory to not be checked by ESlint.
+
+A better alternative to executing the linter from the command line is to configure a *eslint-plugin* to the editor, that runs the linter continuously. By using the plugin you will see errors in your code immediately. You can find more information about the Visual Studio ESLint plugin [here](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint).
+
+ESlint has a vast array of [rules](https://eslint.org/docs/rules/) that are easy to take into use by editing the *.eslintrc.js* file.
+
+Let's add the [eqeqeq](https://eslint.org/docs/rules/eqeqeq) rule that warns us, if equality is checked with anything but the triple equals operator. The rule is added under the *rules* field in the configuration file.
+
+    {
+      // ...
+      'rules': {
+        // ...
+       'eqeqeq': 'error',
+      },
+    }
+
+Let's prevent unnecessary [trailing spaces](https://eslint.org/docs/rules/no-trailing-spaces) at the ends of lines, let's require that [there is always a space before and after curly braces](https://eslint.org/docs/rules/object-curly-spacing), and let's also demand a consistent use of whitespaces in the function parameters of arrow functions.
+
+    {
+      // ...
+      'rules': {
+        // ...
+        'eqeqeq': 'error',
+        'no-trailing-spaces': 'error',
+        'object-curly-spacing': [
+            'error', 'always'
+        ],
+        'arrow-spacing': [
+            'error', { 'before': true, 'after': true }
+        ]
+      },
+    }
+
+Our default configuration takes a bunch of predetermined rules into use from *eslint:recommended*:
+
+    'extends': 'eslint:recommended',
+
+This includes a rule that warns about *console.log* commands. [Disabling](https://eslint.org/docs/user-guide/configuring#configuring-rules) a rule can be accomplished by defining its "value" as 0 in the configuration file. Let's do this for the *no-console* rule in the meantime.
+
+    {
+        // ...
+        'rules': {
+            // ...
+            'no-console': 0
+        },
+    }
+
+**NB** when you make changes to the *.eslintrc.js* file, it is recommended to run the linter from the command line. This will verify that the configuration file is correctly formatted. If there is something wrong in your configuration file, the lint plugin can behave quite erratically.
+
+It is not recommended to keep reinventing the wheel over and over again, and it can be a good idea to adopt a ready-made configuration from someone else's project into yours. Recently many projects have adopted the Airbnb [Javascript style guide](https://github.com/airbnb/javascript) by taking Airbnb's [ESlint](https://github.com/airbnb/javascript/tree/master/packages/eslint-config-airbnb) configuration into use.
