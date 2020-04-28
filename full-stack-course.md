@@ -2585,3 +2585,561 @@ Another thing to notice is that we wrote the tests in quite a compact way, witho
     test('of empty array is zero', () => {
       expect(average([])).toBe(0)
     })
+
+## Testing the backend
+
+In some situations, it can be beneficial to implement some of the backend tests by mocking the database instead of using a real database. One library that could be used for this is [mongo-mock](https://github.com/williamkapke/mongo-mock).
+
+Since our application's backend is still relatively simple, we will make the decision to test the entire application through its REST API, so that the database is also included. This kind of testing where multiple components of the system are being tested as a group, is called [integration testing](https://en.wikipedia.org/wiki/Integration_testing).
+
+### Test environment
+
+In one of the previous chapters of the course material, we mentioned that when your backend server is running in Heroku, it is in *production* mode.
+
+The convention in Node is to define the execution mode of the application with the `NODE_ENV` environment variable. In our current application, we only load the environment variables defined in the `.env` file if the application is *not* in production mode.
+
+It is common practice to define separate modes for development and testing.
+
+Next, let's change the scripts in our *package.json* so that when tests are run, `NODE_ENV` gets the value *test*:
+
+    {
+      // ...
+      "scripts": {
+          "start": "NODE_ENV=production node index.js",
+          "dev": "NODE_ENV=development nodemon index.js",
+          "build:ui": "rm -rf build && cd ../../../2/luento/notes && npm run build && cp -r build ../../../3/luento/notes-backend",
+          "deploy": "git push heroku master",
+          "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
+          "logs:prod": "heroku logs --tail",
+          "lint": "eslint .",
+          "test": "NODE_ENV=test jest --verbose --runInBand"
+      },
+      // ...
+    }
+
+We also added the [runInBand](https://jestjs.io/docs/en/cli.html#--runinband) option to the npm script that executes the tests. This option will prevent Jest from running tests in parallel; we will discuss its significance once our tests start using the database.
+
+There is a slight issue in the way that we have specified the mode of the application in our scripts: it will not work on Windows. We can correct this by installing the [cross-env](https://www.npmjs.com/package/cross-env) package with the command:
+
+    npm install cross-env
+
+We can then achieve cross-platform compatibility by using the cross-env library in our npm scripts defined in *package.json*:
+
+    {
+      // ...
+      "scripts": {
+        "start": "cross-env NODE_ENV=production node index.js",
+        "dev": "cross-env NODE_ENV=development nodemon index.js",
+        // ...
+        "test": "cross-env NODE_ENV=test jest --verbose --runInBand",
+      },
+      // ...
+    }
+
+Now we can modify the way that our application runs in different modes. As an example of this, we could define the application to use a separate test database when it is running tests.
+
+We can create our separate test database in Mongo DB Atlas. This is not an optimal solution in situations where there are many people developing the same application. Test execution in particular typically requires that a single database instance is not used by tests that are running concurrently.
+
+It would be better to run our tests using a database that is installed and running in the developer's local machine. The optimal solution would be to have every test execution use its own separate database. This is "relatively simple" to achieve by [running Mongo in-memory](https://docs.mongodb.com/manual/core/inmemory/) or by using [Docker](https://www.docker.com) containers. We will not complicate things and will instead continue to use the MongoDB Atlas database.
+
+Let's make some changes to the module that defines the application's configuration:
+
+    require('dotenv').config()
+
+    let PORT = process.env.PORT
+    let MONGODB_URI = process.env.MONGODB_URI
+
+    if (process.env.NODE_ENV === 'test') {
+        MONGODB_URI = process.env.TEST_MONGODB_URI
+    }
+
+    module.exports = {
+        MONGODB_URI,
+        PORT
+    }
+
+The *.env* file has *separate variables* for the database addresses of the development and test databases:
+
+    MONGODB_URI=mongodb+srv://fullstack:secred@cluster0-ostce.mongodb.net/note-app?retryWrites=true
+    PORT=3001
+    
+    TEST_MONGODB_URI=mongodb+srv://fullstack:secret@cluster0-ostce.mongodb.net/note-app-test?retryWrites=true
+
+The *config* module that we have implemented slightly resembles the [node-config](https://github.com/lorenwest/node-config) package. Writing our own implementation is justified since our application is simple, and also because it teaches us valuable lessons.
+
+### supertest
+
+Let's use the [supertest](https://github.com/visionmedia/supertest) package to help us write our tests for testing the API.
+
+We will install the package as a development dependency:
+
+    npm install --save-dev supertest
+
+Let's write our first test in the *tests/note\_api.test.js* file:
+
+    const mongoose = require('mongoose')
+    const supertest = require('supertest')
+    const app = require('../app')
+    
+    const api = supertest(app)
+    
+    test('notes are returned as json', async () => {
+      await api
+        .get('/api/notes')
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+    })
+    
+    afterAll(() => {
+      mongoose.connection.close()
+    })
+
+The test imports the Express application from the *app.js* module and wraps it with the *supertest* function into a so-called [superagent](https://github.com/visionmedia/superagent) object. This object is assigned to the *api* variable and tests can use it for making HTTP requests to the backend.
+
+Once all the tests have finished running we have to close the database connection used by Mongoose. This can be easily achieved with the [afterAll](https://facebook.github.io/jest/docs/en/api.html#afterallfn-timeout) method:
+
+    afterAll(() => {
+      mongoose.connection.close()
+    })
+
+One tiny but important detail: at the beginning of this part we extracted the Express application into the *app.js* file, and the role of the *index.js* file was changed to launch the application at the specified port with Node's built-in *http* object:
+
+    const app = require('./app') // the actual Express app
+    const http = require('http')
+    const config = require('./utils/config')
+    const logger = require('./utils/logger')
+    
+    const server = http.createServer(app)
+    
+    server.listen(config.PORT, () => {
+      logger.info(`Server running on port ${config.PORT}`)
+    })
+
+The tests only use the express application defined in the *app.js* file:
+
+    const mongoose = require('mongoose')
+    const supertest = require('supertest')
+    const app = require('../app')
+    const api = supertest(app)
+    // ...
+
+The documentation for supertest says the following:
+
+> *if the server is not already listening for connections then it is bound to an ephemeral port for you so there is no need to keep track of ports.*
+
+In other words, supertest takes care that the application being tested is started at the port that it uses internally.
+
+Let's write a few more tests:
+
+    test('there are two notes', async () => {
+      const response = await api.get('/api/notes')
+    
+      expect(response.body).toHaveLength(2)
+    })
+    
+    test('the first note is about HTTP methods', async () => {
+      const response = await api.get('/api/notes')
+    
+      expect(response.body[0].content).toBe('HTML is easy')
+    })
+
+Both tests store the response of the request to the *response* variable, and unlike the previous test that used the methods provided by *supertest* for verifying the status code and headers, this time we are inspecting the response data stored in *response.body* property. Our tests verify the format and content of the response data with the [expect](https://facebook.github.io/jest/docs/en/expect.html#content) method of Jest.
+
+The middleware that outputs information about the HTTP requests is obstructing the test execution output. Let us modify the logger so that it does not print to console in test mode:
+
+    const info = (...params) => {
+        if (process.env.NODE_ENV !== 'test') {
+            console.log(...params)
+        }
+    }
+
+    const error = (...params) => {
+        console.error(...params)
+    }
+
+    module.exports = {
+        info,
+        error
+    }
+
+### Initializing the database before tests
+
+However, our tests are bad as they are dependent on the state of the database. In order to make our tests more robust, we have to reset the database and generate the needed test data in a controlled manner before we run the tests.
+
+Our tests are already using the [afterAll](https://facebook.github.io/jest/docs/en/api.html#afterallfn-timeout) function of Jest to close the connection to the database after the tests are finished executing. Jest offers many other [functions](https://facebook.github.io/jest/docs/en/setup-teardown.html#content) that can be used for executing operations once before any test is run, or every time before a test is run.
+
+Let's initialize the database *before every test* with the [beforeEach](https://jestjs.io/docs/en/api.html#aftereachfn-timeout) function:
+
+    const mongoose = require('mongoose')
+    const supertest = require('supertest')
+    const app = require('../app')
+    const api = supertest(app)
+    const Note = require('../models/note')
+    
+    const initialNotes = [
+      {
+        content: 'HTML is easy',
+        important: false,
+      },
+      {
+        content: 'Browser can execute only Javascript',
+        important: true,
+      },
+    ]
+    
+    beforeEach(async () => {
+      await Note.deleteMany({})
+    
+      let noteObject = new Note(initialNotes[0])
+      await noteObject.save()
+    
+      noteObject = new Note(initialNotes[1])
+      await noteObject.save()
+    })
+
+Let's also make the following changes to the last two tests:
+
+    test('all notes are returned', async () => {
+      const response = await api.get('/api/notes')
+    
+      expect(response.body).toHaveLength(initialNotes.length)})
+    
+    test('a specific note is within the returned notes', async () => {
+      const response = await api.get('/api/notes')
+    
+      const contents = response.body.map(r => r.content)
+      expect(contents).toContain(
+        'Browser can execute only Javascript'  )
+    })
+
+### Running tests one by one
+
+The *npm test* command executes all of the tests of the application. When we are writing tests, it is usually wise to only execute one or two tests. Jest offers a few different ways of accomplishing this, one of which is the [only](https://jestjs.io/docs/en/api#testonlyname-fn-timeout) method. If tests are written across many files, this method is not great.
+
+A better option is to specify the tests that need to be run as parameter of the *npm test* command.
+
+The following command only runs the tests found in the *tests/note\_api.test.js* file:
+
+    npm test -- tests/note_api.test.js
+
+The *-t* option can be used for running tests with a specific name:
+
+    npm test -- -t 'a specific note is within the returned notes'
+
+The provided parameter can refer to the name of the test or the describe block. The parameter can also contain just a part of the name. The following command will run all of the tests that contain *notes* in their name:
+
+    npm test -- -t 'notes'
+
+**NB**: When running a single test, the mongoose connection might stay open if no tests using the connection are run. The problem might be due to the fact that supertest primes the connection, but jest does not run the afterAll portion of the code.
+
+### async/await
+
+As an example, the fetching of notes from the database with promises looks like this:
+
+    Note.find({}).then(notes => {
+      console.log('operation returned the following notes', notes)
+    })
+
+All of the code we want to execute once the operation finishes is written in the callback function. If we wanted to make several asynchronous function calls in sequence, the situation would soon become painful. The asynchronous calls would have to be made in the callback. This would likely lead to complicated code and could potentially give birth to a so-called [callback hell](http://callbackhell.com/).
+
+By [chaining promises](https://javascript.info/promise-chaining) we could keep the situation somewhat under control, and avoid callback hell by creating a fairly clean chain of *then* method calls.
+
+    Note.find({})
+      .then(notes => {
+        return notes[0].remove()
+      })
+      .then(response => {
+        console.log('the first note is removed')
+        // more code here
+      })
+
+The then-chain is alright, but we can do better. The [generator functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) introduced in ES6 provided a [clever way](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/async%20%26%20performance/ch4.md#iterating-generators-asynchronously) of writing asynchronous code in a way that "looks synchronous". The syntax is a bit clunky and not widely used.
+
+The *async* and *await* keywords introduced in ES7 bring the same functionality as the generators, but in an understandable and syntactically cleaner way to the hands of all citizens of the JavaScript world.
+
+There are a few important details to pay attention to when using async/await syntax. In order to use the await operator with asynchronous operations, they have to return a promise. This is not a problem as such, as regular asynchronous functions using callbacks are easy to wrap around promises.
+
+### More tests and refactoring the backend
+
+When code gets refactored, there is always the risk of [regression](https://en.wikipedia.org/wiki/Regression_testing), meaning that existing functionality may break. Let's refactor the remaining operations by first writing a test for each route of the API.
+
+Let's start with the operation for adding a new note. Let's write a test that adds a new note and verifies that the amount of notes returned by the API increases, and that the newly added note is in the list.
+
+    test('a valid note can be added', async () => {
+      const newNote = {
+        content: 'async/await simplifies making async calls',
+        important: true,
+      }
+    
+      await api
+        .post('/api/notes')
+        .send(newNote)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+    
+      const response = await api.get('/api/notes')
+    
+      const contents = response.body.map(r => r.content)
+    
+      expect(response.body).toHaveLength(initialNotes.length + 1)
+      expect(contents).toContain(
+        'async/await simplifies making async calls'
+      )
+    })
+
+Let's also write a test that verifies that a note without content will not be saved into the database.
+
+    test('note without content is not added', async () => {
+      const newNote = {
+        important: true
+      }
+    
+      await api
+        .post('/api/notes')
+        .send(newNote)
+        .expect(400)
+    
+      const response = await api.get('/api/notes')
+    
+      expect(response.body).toHaveLength(initialNotes.length)
+    })
+
+The same verification steps will repeat in other tests later on, and it is a good idea to extract these steps into helper functions. Let's add the function into a new file called *tests/test\_helper.js* that is in the same directory as the test file.
+
+    const Note = require('../models/note')
+    
+    const initialNotes = [
+      {
+        content: 'HTML is easy',
+        date: new Date(),
+        important: false
+      },
+      {
+        content: 'Browser can execute only Javascript',
+        date: new Date(),
+        important: true
+      }
+    ]
+    
+    const nonExistingId = async () => {
+      const note = new Note({ content: 'willremovethissoon' })
+      await note.save()
+      await note.remove()
+    
+      return note._id.toString()
+    }
+    
+    const notesInDb = async () => {
+      const notes = await Note.find({})
+      return notes.map(note => note.toJSON())
+    }
+    
+    module.exports = {
+      initialNotes, nonExistingId, notesInDb
+    }
+
+### Error handling and async/await
+
+With async/await the recommended way of dealing with exceptions is the old and familiar *try/catch* mechanism:
+
+    notesRouter.post('/', async (request, response, next) => {
+        const body = request.body
+
+        const note = new Note({
+            content: body.content,
+            important: body.important === undefined ? false : body.important,
+            date: new Date(),
+        })
+        try {
+            const savedNote = await note.save()
+            response.json(savedNote.toJSON())
+        } catch (exception) {
+            next(exception)
+        }
+    })
+
+After making the change, all of our tests will pass once again.
+
+The tests pass and we can safely refactor the tested routes to use async/await:
+
+    notesRouter.get('/:id', async (request, response, next) => {
+      try{
+        const note = await Note.findById(request.params.id)
+        if (note) {
+          response.json(note.toJSON())
+        } else {
+          response.status(404).end()
+        }
+      } catch(exception) {
+        next(exception)
+      }
+    })
+    
+    notesRouter.delete('/:id', async (request, response, next) => {
+      try {
+        await Note.findByIdAndRemove(request.params.id)
+        response.status(204).end()
+      } catch (exception) {
+        next(exception)
+      }
+    })
+
+### Eliminating the try-catch
+
+Async/await unclutters the code a bit, but the 'price' is the *try/catch* structure required for catching exceptions. All of the route handlers follow the same structure
+
+    try {
+      // do the async operations here
+    } catch(exception) {
+      next(exception)
+    }
+
+One starts to wonder, if it would be possible to refactor the code to eliminate the *catch* from the methods?
+
+The [express-async-errors](https://github.com/davidbanham/express-async-errors) library has a solution for this.
+
+Let's install the library
+
+    npm install express-async-errors --save
+
+Using the library is *very* easy. You introduce the library in *src/app.js*:
+
+    const config = require('./utils/config')
+    const express = require('express')
+    require('express-async-errors')
+    const app = express()
+    const cors = require('cors')
+    const notesRouter = require('./controllers/notes')
+    const middleware = require('./utils/middleware')
+    const logger = require('./utils/logger')
+    const mongoose = require('mongoose')
+    
+    // ...
+    
+    module.exports = app
+
+The 'magic' of the library allows us to eliminate the try-catch blocks completely. For example the route for deleting a note
+
+    notesRouter.delete('/:id', async (request, response, next) => {
+      try {
+        await Note.findByIdAndRemove(request.params.id)
+        response.status(204).end()
+      } catch (exception) {
+        next(exception)
+      }
+    })
+
+becomes
+
+    notesRouter.delete('/:id', async (request, response) => {
+      await Note.findByIdAndRemove(request.params.id)
+      response.status(204).end()
+    })
+
+Because of the library, we do not need the *next(exception)* call anymore. The library handles everything under the hood. If an exception occurs in a *async* route, the execution is automatically passed to the error handling middleware.
+
+The other routes become:
+
+    notesRouter.post('/', async (request, response) => {
+      const body = request.body
+    
+      const note = new Note({
+        content: body.content,
+        important: body.important === undefined ? false : body.important,
+        date: new Date(),
+      })
+    
+      const savedNote = await note.save()
+      response.json(savedNote.toJSON())
+    })
+    
+    notesRouter.get('/:id', async (request, response) => {
+      const note = await Note.findById(request.params.id)
+      if (note) {
+        response.json(note.toJSON())
+      } else {
+        response.status(404).end()
+      }
+    })
+
+### Optimizing the beforeEach function
+
+Let's return to writing our tests and take a closer look at the *beforeEach* function that sets up the tests:
+
+    beforeEach(async () => {
+      await Note.deleteMany({})
+    
+      let noteObject = new Note(helper.initialNotes[0])
+      await noteObject.save()
+    
+      noteObject = new Note(helper.initialNotes[1])
+      await noteObject.save()
+    })
+
+There's a better way of saving multiple objects to the database:
+
+    beforeEach(async () => {
+      await Note.deleteMany({})
+      console.log('cleared')
+    
+      helper.initialNotes.forEach(async (note) => {
+        let noteObject = new Note(note)
+        await noteObject.save()
+        console.log('saved')
+      })
+      console.log('done')
+    })
+
+The tests don't quite seem to work however, so we have added some console logs to help us find the problem. The console displays the following output:
+
+``` 
+cleared
+done
+entered test
+saved
+saved
+```
+
+The problem is that every iteration of the forEach loop generates its own asynchronous operation, and *beforeEach* won't wait for them to finish executing. In other words, the *await* commands defined inside of the *forEach* loop are not in the *beforeEach* function, but in separate functions that *beforeEach* will not wait for.
+
+One way of fixing this is to wait for all of the asynchronous operations to finish executing with the [Promise.all](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) method:
+
+    beforeEach(async () => {
+      await Note.deleteMany({})
+    
+      const noteObjects = helper.initialNotes
+        .map(note => new Note(note))
+      const promiseArray = noteObjects.map(note => note.save())
+      await Promise.all(promiseArray)
+    })
+
+The returned values of each promise in the array can still be accessed when using the Promise.all method. If we wait for the promises to be resolved with the *await* syntax *const results = await Promise.all(promiseArray)*, the operation will return an array that contains the resolved values for each promise in the *promiseArray*, and they appear in the same order as the promises in the array.
+
+Promise.all executes the promises it receives in parallel. If the promises need to be executed in a particular order, this will be problematic. In situations like this, the operations can be executed inside of a [for...of](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of) block, that guarantees a specific execution order.
+
+    beforeEach(async () => {
+      await Note.deleteMany({})
+    
+      for (let note of helper.initialNotes) {
+        let noteObject = new Note(note)
+        await noteObject.save()
+      }
+    })
+
+The asynchronous nature of JavaScript can lead to surprising behavior, and for this reason, it is important to pay careful attention when using the async/await syntax. Even though the syntax makes it easier to deal with promises, it is still necessary to understand how promises work!
+
+### Refactoring tests
+
+This way of testing the API, by making HTTP requests and inspecting the database with Mongoose, is by no means the only nor the best way of conducting API-level integration tests for server applications. There is no universal best way of writing tests, as it all depends on the application being tested and available resources.
+
+### Exercises 4.13.-4.14.
+
+#### 4.14 Blog list expansions, step2
+
+Implement functionality for updating the information of an individual blog post.
+
+Use async/await.
+
+The application mostly needs to update the amount of *likes* for a blog post. You can implement this functionality the same way that we implemented updating notes in [part 3](/en/part3/saving_data_to_mongo_db#other-operations).
+
+Feel free to implement tests for the functionality if you want to. Otherwise verify that the functionality works with Postman or some other tool.
