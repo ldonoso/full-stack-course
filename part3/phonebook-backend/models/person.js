@@ -26,6 +26,7 @@ const schema = new mongoose.Schema({
     minlength: 8,
   },
 })
+
 schema.plugin(uniqueValidator)
 
 schema.set('toJSON', {

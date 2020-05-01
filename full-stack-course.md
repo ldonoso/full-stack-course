@@ -3132,14 +3132,582 @@ The asynchronous nature of JavaScript can lead to surprising behavior, and for t
 
 This way of testing the API, by making HTTP requests and inspecting the database with Mongoose, is by no means the only nor the best way of conducting API-level integration tests for server applications. There is no universal best way of writing tests, as it all depends on the application being tested and available resources.
 
-### Exercises 4.13.-4.14.
+## User administration
 
-#### 4.14 Blog list expansions, step2
+We want to add user authentication and authorization to our application. Users should be stored in the database and every note should be linked to the user who created it. Deleting and editing a note should only be allowed for the user who created it.
 
-Implement functionality for updating the information of an individual blog post.
+Let's start by adding information about users to the database. There is a one-to-many relationship between the user (*User*) and notes (*Note*). When working with document databases, there are many different ways of modeling the situation.
 
-Use async/await.
+The existing solution saves every note in the *notes collection* in the database. If we do not want to change this existing collection, then the natural choice is to save users in their own collection, *users* for example.
 
-The application mostly needs to update the amount of *likes* for a blog post. You can implement this functionality the same way that we implemented updating notes in [part 3](/en/part3/saving_data_to_mongo_db#other-operations).
+Like with all document databases, we can use object id's in Mongo to reference documents in other collections. This is similar to using foreign keys in relational databases.
 
-Feel free to implement tests for the functionality if you want to. Otherwise verify that the functionality works with Postman or some other tool.
+Traditionally document databases like Mongo do not support *join queries* that are available in relational databases, used for aggregating data from multiple tables. However starting from version 3.2. Mongo has supported [lookup aggregation queries](https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/).
+
+If we need a functionality similar to join queries, we will implement it in our application code by making multiple queries. In certain situations Mongoose can take care of joining and aggregating data, which gives the appearance of a join query. However, even in these situations Mongoose makes multiple queries to the database in the background.
+
+### References across collections
+
+Let's assume that the *users* collection contains two users:
+
+    [
+      {
+        username: 'mluukkai',
+        _id: 123456,
+      },
+      {
+        username: 'hellas',
+        _id: 141414,
+      },
+    ];
+
+The *notes* collection contains three notes that all have a *user* field that references a user in the *users* collection:
+
+    [
+      {
+        content: 'HTML is easy',
+        important: false,
+        _id: 221212,
+        user: 123456,
+      },
+      {
+        content: 'The most important operations of HTTP protocol are GET and POST',
+        important: true,
+        _id: 221255,
+        user: 123456,
+      },
+      {
+        content: 'A proper dinosaur codes with Java',
+        important: false,
+        _id: 221244,
+        user: 141414,
+      },
+    ]
+
+Document databases do not demand the foreign key to be stored in the note resources, it could *also* be stored in the users collection, or even both:
+
+    [
+      {
+        username: 'mluukkai',
+        _id: 123456,
+        notes: [221212, 221255],
+      },
+      {
+        username: 'hellas',
+        _id: 141414,
+        notes: [221244],
+      },
+    ]
+
+Document databases also offer a radically different way of organizing the data: In some situations it might be beneficial to nest the entire notes array as a part of the documents in the users collection:
+
+    [
+      {
+        username: 'mluukkai',
+        _id: 123456,
+        notes: [
+          {
+            content: 'HTML is easy',
+            important: false,
+          },
+          {
+            content: 'The most important operations of HTTP protocol are GET and POST',
+            important: true,
+          },
+        ],
+      },
+      {
+        username: 'hellas',
+        _id: 141414,
+        notes: [
+          {
+            content:
+              'A proper dinosaur codes with Java',
+            important: false,
+          },
+        ],
+      },
+    ]
+
+The structure and schema of the database is not as self-evident as it was with relational databases. The chosen schema must be one which supports the use cases of the application the best. This is not a simple design decision to make, as all use cases of the applications are not known when the design decision is made.
+
+Paradoxically, schema-less databases like Mongo require developers to make far more radical design decisions about data organization at the beginning of the project than relational databases with schemas. On average, relational databases offer a more-or-less suitable way of organizing data for many applications.
+
+### Mongoose schema for users
+
+In this case, we make the decision to store the ids of the notes created by the user in the user document. Let's define the model for representing a user in the *models/user.js* file:
+
+    const mongoose = require('mongoose')
+    
+    const userSchema = new mongoose.Schema({
+      username: String,
+      name: String,
+      passwordHash: String,
+      notes: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Note'
+        }
+      ],
+    })
+    
+    userSchema.set('toJSON', {
+      transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString()
+        delete returnedObject._id
+        delete returnedObject.__v
+        // the passwordHash should not be revealed
+        delete returnedObject.passwordHash
+      }
+    })
+    
+    const User = mongoose.model('User', userSchema)
+    
+    module.exports = User
+
+The type of the field is *ObjectId* that references *note*-style documents. Mongo does not inherently know that this is a field that references notes, the syntax is purely related to and defined by Mongoose.
+
+Let's expand the schema of the note defined in the *model/note.js* file so that the note contains information about the user who created it:
+
+    const noteSchema = new mongoose.Schema({
+        content: {
+            type: String,
+            required: true,
+            minlength: 5
+        },
+        date: Date,
+        important: Boolean,
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    })
+
+In stark contrast to the conventions of relational databases, *references are now stored in both documents*: the note references the user who created it, and the user has an array of references to all of the notes created by them.
+
+### Creating users
+
+Let's implement a route for creating new users. The password hash is the output of a one-way hash function applied to the user's password. It is never wise to store unencrypted plaintext passwords in the database\!
+
+Let's install the [bcrypt](https://github.com/kelektiv/node.bcrypt.js) package for generating the password hashes:
+
+    npm install bcrypt --save
+
+Creating new users happens in compliance with the RESTful conventions discussed in [part 3](/en/part3/node_js_and_express#rest), by making an HTTP POST request to the *users* path.
+
+Let's define a separate *router* for dealing with users in a new *controllers/users.js* file. Let's take the router into use in our application in the *app.js* file, so that it handles requests made to the */api/users* url:
+
+    const usersRouter = require('./controllers/users')
+    
+    // ...
+    
+    app.use('/api/users', usersRouter)
+
+The contents of the file that defines the router are as follows:
+
+    const bcrypt = require('bcrypt')
+    const usersRouter = require('express').Router()
+    const User = require('../models/user')
+    
+    usersRouter.post('/', async (request, response) => {
+      const body = request.body
+    
+      const saltRounds = 10
+      const passwordHash = await bcrypt.hash(body.password, saltRounds)
+    
+      const user = new User({
+        username: body.username,
+        name: body.name,
+        passwordHash,
+      })
+    
+      const savedUser = await user.save()
+    
+      response.json(savedUser)
+    })
+    
+    module.exports = usersRouter
+
+We can write a new test that verifies that a new user with the same username can not be created:
+
+    describe('when there is initially one user in db', () => {
+      // ...
+    
+      test('creation fails with proper statuscode and message if username already taken', async () => {
+        const usersAtStart = await helper.usersInDb()
+    
+        const newUser = {
+          username: 'root',
+          name: 'Superuser',
+          password: 'salainen',
+        }
+    
+        const result = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
+          .expect('Content-Type', /application\/json/)
+    
+        expect(result.body.error).toContain('`username` to be unique')
+    
+        const usersAtEnd = await helper.usersInDb()
+        expect(usersAtEnd).toHaveLength(usersAtStart.length)
+      })
+    })
+
+The test case obviously will not pass at this point. We are essentially practicing test-driven development, where tests for new functionality are written before the functionality is implemented.
+
+Let's validate the uniqueness of the username with the help of Mongoose validators. Mongoose does not have a built-in validator for checking the uniqueness of a field. We can find a ready-made solution for this from the [mongoose-unique-validator](https://www.npmjs.com/package/mongoose-unique-validator) npm package. Let's install it:
+
+    npm install --save mongoose-unique-validator
+
+We must make the following changes to the schema defined in the *models/user.js* file:
+
+    const mongoose = require('mongoose')
+    const uniqueValidator = require('mongoose-unique-validator')
+
+    const userSchema = new mongoose.Schema({
+        username: {
+            type: String,
+            unique: true
+        },
+        name: String,
+        passwordHash: String,
+        notes: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Note'
+        }],
+    })
+    
+    userSchema.plugin(uniqueValidator)
+    // ...
+
+### Populate
+
+We would like our API to work in such a way, that when an HTTP GET request is made to the */api/users* route, the user objects would also contain the contents of the user's notes, and not just their id. In a relational database, this functionality would be implemented with a *join query*.
+
+As previously mentioned, document databases do not properly support join queries between collections, but the Mongoose library can do some of these joins for us. Mongoose accomplishes the join by doing multiple queries, which is different from join queries in relational databases which are *transactional*, meaning that the state of the database does not change during the time that the query is made. With join queries in Mongoose, nothing can guarantee that the state between the collections being joined is consistent, meaning that if we make a query that joins the user and notes collections, the state of the collections may change during the query.
+
+The Mongoose join is done with the [populate](http://mongoosejs.com/docs/populate.html) method. Let's update the route that returns all users first:
+
+    usersRouter.get('/', async (request, response) => {
+      const users = await User    
+        .find({}).populate('notes')
+      response.json(users.map(u => u.toJSON()))
+    })
+
+The [populate](http://mongoosejs.com/docs/populate.html) method is chained after the *find* method making the initial query. The parameter given to the populate method defines that the *ids* referencing *note* objects in the *notes* field of the *user* document will be replaced by the referenced *note* documents.
+
+We can use the populate parameter for choosing the fields we want to include from the documents. The selection of fields is done with the Mongo [syntax](https://docs.mongodb.com/manual/tutorial/project-fields-from-query-results/#return-the-specified-fields-and-the-id-field-only):
+
+    usersRouter.get('/', async (request, response) => {
+      const users = await User
+        .find({}).populate('notes', { content: 1, date: 1 })
+    
+      response.json(users.map(u => u.toJSON()))
+    });
+
+It's important to understand that the database does not actually know that the ids stored in the *user* field of notes reference documents in the user collection.
+
+The functionality of the *populate* method of Mongoose is based on the fact that we have defined "types" to the references in the Mongoose schema with the *ref* option:
+
+    const noteSchema = new mongoose.Schema({
+      content: {
+        type: String,
+        required: true,
+        minlength: 5
+      },
+      date: Date,
+      important: Boolean,
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    })
+
+## Token authentication
+
+Users must be able to log into our application, and when a user is logged in, their user information must automatically be attached to any new notes they create.
+
+We will now implement support for [token based authentication](https://scotch.io/tutorials/the-ins-and-outs-of-token-based-authentication#toc-how-token-based-works) to the backend.
+
+The principles of token based authentication are depicted in the following sequence:
+
+- User starts by logging in using a login form implemented with React
+
+- This causes the React code to send the username and the password to the server address */api/login* as a HTTP POST request.
+
+- If the username and the password are correct, the server generates a *token* which somehow identifies the logged in user.
+
+  - The token is signed digitally, making it impossible to falsify (with cryptographic means)
+
+- The backend responds with a status code indicating the operation was successful, and returns the token with the response.
+
+- The browser saves the token, for example to the state of a React application.
+
+- When the user creates a new note (or does some other operation requiring identification), the React code sends the token to the server with the request.
+
+- The server uses the token to identify the user
+
+Let's first implement the functionality for logging in. Install the [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) library, which allows us to generate [JSON web tokens](https://jwt.io/).
+
+    npm install jsonwebtoken --save
+
+The code for login functionality goes to the file controllers/login.js.
+
+    const jwt = require('jsonwebtoken')
+    const bcrypt = require('bcrypt')
+    const loginRouter = require('express').Router()
+    const User = require('../models/user')
+    
+    loginRouter.post('/', async (request, response) => {
+      const body = request.body
+    
+      const user = await User.findOne({ username: body.username })
+      const passwordCorrect = user === null
+        ? false
+        : await bcrypt.compare(body.password, user.passwordHash)
+    
+      if (!(user && passwordCorrect)) {
+        return response.status(401).json({
+          error: 'invalid username or password'
+        })
+      }
+    
+      const userForToken = {
+        username: user.username,
+        id: user._id,
+      }
+    
+      const token = jwt.sign(userForToken, process.env.SECRET)
+    
+      response
+        .status(200)
+        .send({ token, username: user.username, name: user.name })
+    })
+    
+    module.exports = loginRouter
+
+If the user is not found, or the password is incorrect, the request is responded to with the status code [401 unauthorized](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2).
+
+If the password is correct, a token is created with the method *jwt.sign*. The token contains the username and the user id in a digitally signed form.
+
+The token has been digitally signed using a string from the environment variable *SECRET* as the *secret*. The digital signature ensures that only parties who know the secret can generate a valid token. The value for the environment variable must be set in the *.env* file.
+
+Now the code for login just has to be added to the application by adding the new router to *app.js*.
+
+    const loginRouter = require('./controllers/login')
+    
+    //...
+    
+    app.use('/api/login', loginRouter)
+
+### Limiting creating new notes to logged in users
+
+Let's change creating new notes so that it is only possible if the post request has a valid token attached. The note is then saved to the notes list of the user identified by the token.
+
+There are several ways of sending the token from the browser to the server. We will use the [Authorization](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization) header. The header also tells which [authentication schema](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#Authentication_schemes) is used. This can be necessary if the server offers multiple ways to authenticate. Identifying the schema tells the server how the attached credentials should be interpreted.
+
+The *Bearer* schema is suitable to our needs.
+
+In practice, this means that if the token is for example, the string *eyJhbGciOiJIUzI1NiIsInR5c2VybmFtZSI6Im1sdXVra2FpIiwiaW*, the Authorization header will have the value:
+
+    Bearer eyJhbGciOiJIUzI1NiIsInR5c2VybmFtZSI6Im1sdXVra2FpIiwiaW
+
+Creating new notes will change like so:
+
+    const jwt = require('jsonwebtoken')
+
+    const getTokenFrom = request => {
+        const authorization = request.get('authorization')
+        if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+            return authorization.substring(7)
+        }
+        return null
+    }
+
+    notesRouter.post('/', async (request, response) => {
+        const body = request.body
+        const token = getTokenFrom(request)
+        const decodedToken = jwt.verify(token, process.env.SECRET)
+        if (!token || !decodedToken.id) {
+            return response.status(401).json({
+                error: 'token missing or invalid'
+            })
+        }
+        const user = await User.findById(decodedToken.id)
+        const note = new Note({
+            content: body.content,
+            important: body.important === undefined ? false : body.important,
+            date: new Date(),
+            user: user._id
+        })
+
+        const savedNote = await note.save()
+        user.notes = user.notes.concat(savedNote._id)
+        await user.save()
+
+        response.json(savedNote.toJSON())
+    })
+
+A new note can now be created if the *authorization* header is given the correct value:
+
+    POST http://localhost:3001/api/notes
+    Content-type: application/json
+    Authorization: bearer eyJh...
+
+    {
+       "content": "Note 55",
+       "important": false
+    }
+
+### Error handling
+
+Token verification can also cause a *JsonWebTokenError*. If we for example remove a few characters from the token and try creating a new note, this happens:
+
+    JsonWebTokenError: invalid signature
+        at /Users/mluukkai/opetus/_2019fullstack-koodit/osa3/notes-backend/node_modules/jsonwebtoken/verify.js:126:19
+        at getSecret (/Users/mluukkai/opetus/_2019fullstack-koodit/osa3/notes-backend/node_modules/jsonwebtoken/verify.js:80:14)
+        at Object.module.exports [as verify] (/Users/mluukkai/opetus/_2019fullstack-koodit/osa3/notes-backend/node_modules/jsonwebtoken/verify.js:84:10)
+        at notesRouter.post (/Users/mluukkai/opetus/_2019fullstack-koodit/osa3/notes-backend/controllers/notes.js:40:30)
+
+There are many possible reasons for a decoding error. The token can be faulty (like in our example), falsified, or expired. Let's extend our errorHandler middleware to take into account the different decoding errors.
+
+    const unknownEndpoint = (request, response) => {
+        response.status(404).send({
+            error: 'unknown endpoint'
+        })
+    }
+
+    const errorHandler = (error, request, response, next) => {
+        if (error.name === 'CastError') {
+            return response.status(400).send({
+                error: 'malformatted id'
+            })
+        } else if (error.name === 'ValidationError') {
+            return response.status(400).json({
+                error: error.message
+            })
+        } else if (error.name === 'JsonWebTokenError') {
+            return response.status(401).json({
+                error: 'invalid token'
+            })
+        }
+
+        logger.error(error.message)
+
+        next(error)
+    }
+
+If the application has multiple interfaces requiring identification, JWT's validation should be separated into its own middleware. Some existing library like [express-jwt](https://www.npmjs.com/package/express-jwt) could also be used.
+
+### End notes
+
+There have been many changes to the code which have caused a typical problem for a fast-paced software project: most of the tests have broken. Because this part of the course is already jammed with new information, we will leave fixing the tests to a non compulsory exercise.
+
+Usernames, passwords and applications using token authentication must always be used over [HTTPS](https://en.wikipedia.org/wiki/HTTPS). We could use a Node [HTTPS](https://nodejs.org/api/https.html) server in our application instead of the [HTTP](https://nodejs.org/docs/latest-v8.x/api/http.html) server (it requires more configuration). On the other hand, the production version of our application is in Heroku, so our applications stays secure: Heroku routes all traffic between a browser and the Heroku server over HTTPS.
+
+### Exercises 4.15.-4.22.
+
+In the next exercises, basics of user management will be implemented for the Bloglist application. The safest way is to follow the story from part 4 chapter [User administration](/en/part4/user_administration) to the chapter [Token-based authentication](/en/part4/token_authentication). You can of course also use your creativity.
+
+**One more warning:** If you notice you are mixing async/await and *then* calls, it is 99% certain you are doing something wrong. Use either or, never both.
+
+#### 4.15: bloglist expansion, step3
+
+Implement a way to create new users by doing a HTTP POST-request to address *api/users*. Users have *username , password and name*.
+
+Do not save passwords to the database as clear text, but use the *bcrypt* library like we did in part 4 chapter [Creating new users](/en/part4/user_administration#creating-users).
+
+**NB** Some Windows users have had problems with *bcrypt*. If you run into problems, remove the library with command
+
+    npm uninstall bcrypt --save 
+
+and install [bcryptjs](https://www.npmjs.com/package/bcryptjs) instead.
+
+Implement a way to see the details of all users by doing a suitable HTTP request.
+
+List of users can for example, look as follows:
+
+![fullstack content](/static/b59bda1bd7e5987a5c805332d509e516/14be6/22.png)
+
+#### 4.16\*: bloglist expansion, step4
+
+Add a feature which adds the following restrictions to creating new users: Both username and password must be given. Both username and password must be at least 3 characters long. The username must be unique.
+
+The operation must respond with a suitable status code and some kind of an error message if invalid user is created.
+
+**NB** Do not test password restrictions with Mongoose validations. It is not a good idea because the password received by the backend and the password hash saved to the database are not the same thing. The password length should be validated in the controller like we did in [part 3](/en/part3/validation_and_es_lint) before using Mongoose validation.
+
+Also, implement tests which check that invalid users are not created and invalid add user operation returns a suitable status code and error message.
+
+#### 4.17: bloglist expansion, step5
+
+Expand blogs so that each blog contains information on the creator of the blog.
+
+Modify adding new blogs so that when a new blog is created, *any* user from the database is designated as its creator (for example the one found first). Implement this according to part 4 chapter [populate](/en/part4/user_administration#populate). Which user is designated as the creator does not matter just yet. The functionality is finished in exercise 4.19.
+
+Modify listing all blogs so that the creator's user information is displayed with the blog:
+
+![fullstack content](/static/199682ad74f50747c90997a967856ffa/14be6/23e.png)
+
+and listing all users also displays the blogs created by each user:
+
+![fullstack content](/static/ac9967c89785b33440e9b1b4e87c17e5/14be6/24e.png)
+
+#### 4.18: bloglist expansion, step6
+
+Implement token-based authentication according to part 4 chapter [Token authentication](/en/part4/token_authentication).
+
+#### 4.19: bloglist expansion, step7
+
+Modify adding new blogs so that it is only possible if a valid token is sent with the HTTP POST request. The user identified by the token is designated as the creator of the blog.
+
+#### 4.20\*: bloglist expansion, step8
+
+[This example](/en/part4/token_authentication) from part 4 shows taking the token from the header with the *getTokenFrom* helper function.
+
+If you used the same solution, refactor taking the token to a [middleware](/en/part3/node_js_and_express#middleware). The middleware should take the token from the *Authorization* header and place it to the *token* field of the *request* object.
+
+In other words, if you register this middleware in the *app.js* file before all routes
+
+    app.use(middleware.tokenExtractor)
+
+routes can access the token with *request.token*:
+
+    blogsRouter.post('/', async (request, response) => {
+      // ..
+      const decodedToken = jwt.verify(request.token, process.env.SECRET)
+      // ..
+    })
+
+Remember that a normal [middleware](/en/part3/node_js_and_express#middleware) is a function with three parameters, that at the end calls the last parameter *next* in order to move the control to next middleware:
+
+    const tokenExtractor = (request, response, next) => {
+      // code that extracts the token
+    
+      next()
+    }
+
+#### 4.21\*: bloglist expansion, step9
+
+Change the delete blog operation so that a blog can be deleted only by the user who added the blog. Therefore, deleting a blog is possible only if the token sent with the request is the same as that of the blog's creator.
+
+If deleting a blog is attempted without a token or by a wrong user, the operation should return a suitable status code.
+
+Note that if you fetch a blog from the database,
+
+    const blog = await Blog.findById(...)
+
+the field *blog.user* does not contain a string, but an Object. So if you want to compare the id of the object fetched from the database and a string id, normal comparison operation does not work. The id fetched from the database must be parsed into a string first.
+
+    if ( blog.user.toString() === userid.toString() ) ...
+
+#### 4.22\*: bloglist expansion, step10
+
+After adding token based authentication the tests for adding a new blog broke down. Fix now the tests. Write also a new test that ensures that adding a blog fails with proper status code *401 Unauthorized* if token is not provided.
+
+[This](https://github.com/visionmedia/supertest/issues/398) is most likely useful when doing the fix.
+
+This is the last exercise for this part of the course and it's time to push your code to GitHub and mark all of your finished exercises to the [exercise submission system](https://studies.cs.helsinki.fi/stats/courses/fullstackopen).
+
