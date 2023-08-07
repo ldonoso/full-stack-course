@@ -72,7 +72,7 @@ The properties of an object are referenced by using the "dot" notation, or by us
 
     console.log(object1.name)
 
-    const fieldName = 'age' 
+    const fieldName = 'age'
     console.log(object1[fieldName])
 
 You can also add properties to an object on the fly by either using dot notation or using brackets:
@@ -235,7 +235,7 @@ To recap, hooks may only be called from the inside of a function body that defin
 
 ### Do Not Define Components Within Components
 
-The application still appears to work, but don't implement components like this! Never define components inside of other components. The method provides no benefits and leads to many unpleasant problems. 
+The application still appears to work, but don't implement components like this! Never define components inside of other components. The method provides no benefits and leads to many unpleasant problems.
 
 # Part 2: Communicating with server
 
@@ -252,7 +252,7 @@ We could have used the array indexes as keys. The indexes can be retrieved by pa
 As such, one way to define the row generation without getting errors is:
 
 	<ul>
-	  {notes.map((note, i) => 
+	  {notes.map((note, i) =>
 		<li key={i}>
 		  {note.content}
 		</li>
@@ -270,15 +270,15 @@ This is, however, not recommended and can cause undesired problems even if it se
 		<div>
 		  <h1>Notes</h1>
 		  <ul>
-			{notes.map(note =>           
-				<Note key={note.id} note={note} />        
+			{notes.map(note =>
+				<Note key={note.id} note={note} />
 			)}
           </ul>
 		</div>
 	  )
 	}
 
-Note, that the key attribute must now be defined for the Note components, and not for the li tags like before. 
+Note, that the key attribute must now be defined for the Note components, and not for the li tags like before.
 
 ## Forms
 
@@ -440,9 +440,9 @@ Creating a new resource for storing a note is done by making an HTTP POST reques
     }
 
     axios
-        .post('http://localhost:3001/notes', noteObject)    
-        .then(response => {      
-                setNotes(notes.concat(response.data))      
+        .post('http://localhost:3001/notes', noteObject)
+        .then(response => {
+                setNotes(notes.concat(response.data))
                 setNewNote('')
         })
 
@@ -471,7 +471,7 @@ Individual notes stored in the json-server backend can be modified in two differ
 		})
 	}
 
-This we create a new object that is an exact copy of the old note, apart from the `important` property.  Why did we make a copy of the note object we wanted to modify? The variable note is a reference to an item in the notes array in the component's state, and as we recall we must never mutate state directly in React. 
+This we create a new object that is an exact copy of the old note, apart from the `important` property.  Why did we make a copy of the note object we wanted to modify? The variable note is a reference to an item in the notes array in the component's state, and as we recall we must never mutate state directly in React.
 
 ### Extracting communication with the backend into a separate module
 
@@ -492,10 +492,10 @@ In the spirit of the single responsibility principle, we deem it wise to extract
 	  return axios.put(`${baseUrl}/${id}`, newObject)
 	}
 
-	export default { 
-	  getAll: getAll, 
-	  create: create, 
-	  update: update 
+	export default {
+	  getAll: getAll,
+	  create: create,
+	  update: update
 	}
 
 The module returns an object that has three functions as its properties that deal with notes. The functions directly return the promises returned by the axios methods.
@@ -548,7 +548,7 @@ In regular HTML, classes are defined as the value of the *class* attribute:
 In React we have to use the [className](https://reactjs.org/docs/dom-elements.html#classname) attribute instead of the class attribute. With this in mind, let's make the following changes to our *Note* component:
 
       return (
-        <li className='note'>      {note.content} 
+        <li className='note'>      {note.content}
           <button onClick={toggleImportance}>{label}</button>
         </li>
       )
@@ -579,7 +579,7 @@ CSS rules are defined slightly differently in JavaScript than in normal CSS file
 
 But as a React inline style object it would look like this:
 
-``` 
+```
  {
   color: 'green',
   fontStyle: 'italic',
@@ -597,15 +597,15 @@ Next, we could add a "bottom block" to our application by creating a *Footer* co
         fontStyle: 'italic',
         fontSize: 16
       }
-    
+
       return (
         <div style={footerStyle}>
           <br />
           <em>Note app, Department of Computer Science, University of Helsinki 2020</em>
-        </div> 
+        </div>
       )
     }
-    
+
 Inline styles and some of the other ways of adding styles to React components go completely against the grain of old conventions. Traditionally, it has been considered the best practice to entirely separate CSS from the content (HTML) and functionality (JavaScript). According to this older school of thought, the goal was to write CSS, HTML, and JavaScript into their separate files.
 
 The philosophy of React is, in fact, the polar opposite of this. Since the separation of CSS, HTML, and JavaScript into separate files did not seem to scale well in larger applications, React bases the division of the application along the lines of its logical functional entities.
@@ -639,7 +639,7 @@ Let's make a small change to the *scripts* object:
     {
       // ...
       "scripts": {
-        "start": "node index.js",    
+        "start": "node index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
       },
       // ...
@@ -662,12 +662,12 @@ Or we can run it as an [npm script](https://docs.npmjs.com/misc/scripts):
 Let's change the application into a web server:
 
     const http = require('http')
-    
+
     const app = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/plain' })
       res.end('Hello World')
     })
-    
+
     const port = 3001
     app.listen(port)
     console.log(`Server running on port ${port}`)
@@ -749,19 +749,19 @@ Let's get back to our application and make the following changes:
 
     const express = require('express')
     const app = express()
-    
+
     let notes = [
       ...
     ]
-    
+
     app.get('/', (req, res) => {
       res.send('<h1>Hello World!</h1>')
     })
-    
+
     app.get('/api/notes', (req, res) => {
       res.json(notes)
     })
-    
+
     const PORT = 3001
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
@@ -911,7 +911,7 @@ To further our investigation, we also add a console log inside the comparison fu
 
 When we visit the URL again in the browser, each call to the comparison function prints a few different things to the console. The console output is the following:
 
-``` 
+```
 
 1 'number' '1' 'string' false
 2 'number' '1' 'string' false
@@ -960,7 +960,7 @@ Next let's implement a route for deleting resources.
     app.delete('/api/notes/:id', (request, response) => {
       const id = Number(request.params.id)
       notes = notes.filter(note => note.id !== id)
-    
+
       response.status(204).end()
     })
 
@@ -1000,15 +1000,15 @@ Let's activate the json-parser and implement an initial handler for dealing with
 
     const express = require('express')
     const app = express()
-    
+
     app.use(express.json())
-    
+
     //...
-    
+
     app.post('/api/notes', (request, response) => {
       const note = request.body
       console.log(note)
-    
+
       response.json(note)
     })
 
@@ -1045,7 +1045,7 @@ If you are using VS Code, then you should install the REST client from the previ
 One benefit that the REST client has over Postman is that the requests are handily available at the root of the project repository, and they can be distributed to everyone in the development team. Postman also allows users to save requests, but the situation can get quite chaotic especially when you're working on multiple unrelated projects.
 
 > **Important sidenote**
-> 
+>
 > Sometimes when you're debugging, you may want to find out what headers have been set in the HTTP request. One way of accomplishing this is through the [get](http://expressjs.com/en/4x/api.html#req.get) method of the *request* object, that can be used for getting the value of a single header. The *request* object also has the *headers* property, that contains all of the headers of a specific request.
 
 > Problems can occur with the VS REST client if you accidentally add an empty line between the top row and the row specifying the HTTP headers. In this situation, the REST client interprets this to mean that all headers are left empty, which leads to the backend server not knowing that the data it has received is in the JSON format.
@@ -1056,14 +1056,14 @@ Let's return to the application. Once we know that the application receives data
 
     app.post('/api/notes', (request, response) => {
       const maxId = notes.length > 0
-        ? Math.max(...notes.map(n => n.id)) 
+        ? Math.max(...notes.map(n => n.id))
         : 0
-    
+
       const note = request.body
       note.id = maxId + 1
-    
+
       notes = notes.concat(note)
-    
+
       response.json(note)
     })
 
@@ -1077,25 +1077,25 @@ The current version still has the problem that the HTTP POST request can be used
         : 0
       return maxId + 1
     }
-    
+
     app.post('/api/notes', (request, response) => {
       const body = request.body
-    
+
       if (!body.content) {
-        return response.status(400).json({ 
-          error: 'content missing' 
+        return response.status(400).json({
+          error: 'content missing'
         })
       }
-    
+
       const note = {
         content: body.content,
         important: body.important || false,
         date: new Date(),
         id: generateId(),
       }
-    
+
       notes = notes.concat(note)
-    
+
       response.json(note)
     })
 
@@ -1181,7 +1181,7 @@ Let's add the following middleware after our routes, that is used for catching r
     const unknownEndpoint = (request, response) => {
       response.status(404).send({ error: 'unknown endpoint' })
     }
-    
+
     app.use(unknownEndpoint)
 
 ## Deploying app to internet
@@ -1196,9 +1196,9 @@ In the previous part, the frontend could ask for the list of notes from the json
       const request = axios.get(baseUrl)
       return request.then(response => response.data)
     }
-    
+
     // ...
-    
+
     export default { getAll, create, update }
 
 Now frontend's GET request to <http://localhost:3001/api/notes> does not work for some reason:
@@ -1222,7 +1222,7 @@ We can allow requests from other *origins* by using Node's [cors](https://github
 take the middleware to use and allow for requests from all origins:
 
     const cors = require('cors')
-    
+
     app.use(cors())
 
 And the frontend works\! However, the functionality for changing the importance of notes has not yet been implemented to the backend.
@@ -1305,7 +1305,7 @@ Because on our situation, both the frontend and the backend are at the same addr
       const request = axios.get(baseUrl)
       return request.then(response => response.data)
     }
-    
+
     // ...
 
 After the change, we have to create a new production build and copy it to the root of the backend repository.
@@ -1341,7 +1341,7 @@ To create a new production build of the frontend without extra manual work, let'
         //...
         "build:ui": "rm -rf build && cd ../../osa2/materiaali/notes-new && npm run build --prod && cp -r build ../../../osa3/notes-backend/",
         "deploy": "git push heroku master",
-        "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",    
+        "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",
         "logs:prod": "heroku logs --tail"
       }
     }
@@ -1427,33 +1427,33 @@ Let's install Mongoose:
 Let's not add any code dealing with Mongo to our backend just yet. Instead, let's make a practice application into the file *mongo.js*:
 
     const mongoose = require('mongoose')
-    
+
     if ( process.argv.length<3 ) {
       console.log('give password as argument')
       process.exit(1)
     }
-    
+
     const password = process.argv[2]
-    
+
     const url =
       `mongodb+srv://fullstack:${password}@cluster0-ostce.mongodb.net/test?retryWrites=true`
-    
+
     mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-    
+
     const noteSchema = new mongoose.Schema({
       content: String,
       date: Date,
       important: Boolean,
     })
-    
+
     const Note = mongoose.model('Note', noteSchema)
-    
+
     const note = new Note({
       content: 'HTML is Easy',
       date: new Date(),
       important: true,
     })
-    
+
     note.save().then(response => {
       console.log('note saved!')
       mongoose.connection.close()
@@ -1476,7 +1476,7 @@ After establishing the connection to the database, we define the [schema](http:/
       date: Date,
       important: Boolean,
     })
-    
+
     const Note = mongoose.model('Note', noteSchema)
 
 First we define the [schema](http://mongoosejs.com/docs/guide.html) of a note that is stored in the *noteSchema* variable. The schema tells Mongoose how the note objects are to be stored in the database.
@@ -1540,19 +1540,19 @@ Now we have enough knowledge to start using Mongo in our application.
 Let's get a quick start by copy pasting the Mongoose definitions to the *index.js* file:
 
     const mongoose = require('mongoose')
-    
+
     // DO NOT SAVE YOUR PASSWORD TO GITHUB!!
     const url =
       'mongodb+srv://fullstack:sekred@cluster0-ostce.mongodb.net/note-app?retryWrites=true'
-    
+
     mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-    
+
     const noteSchema = new mongoose.Schema({
       content: String,
       date: Date,
       important: Boolean,
     })
-    
+
     const Note = mongoose.model('Note', noteSchema)
 
 Let's change the handler for fetching all notes into the following form:
@@ -1592,7 +1592,7 @@ Before we refactor the rest of the backend to use the database, let's extract th
 Let's create a new directory for the module called *models*, and add a file called *note.js*:
 
     const mongoose = require('mongoose')
-    
+
     const url = process.env.MONGODB_URI
     console.log('connecting to', url)
     mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -1602,7 +1602,7 @@ Let's create a new directory for the module called *models*, and add a file call
       date: Date,
       important: Boolean,
     })
-    
+
     noteSchema.set('toJSON', {
       transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString()
@@ -1610,7 +1610,7 @@ Let's create a new directory for the module called *models*, and add a file call
         delete returnedObject.__v
       }
     })
-    
+
     module.exports = mongoose.model('Note', noteSchema)
 
 Defining Node [modules](https://nodejs.org/docs/latest-v8.x/api/modules.html) differs slightly from the way of defining [ES6 modules](/en/part2/rendering_a_collection_modules#refactoring-modules) in part 2.
@@ -1647,7 +1647,7 @@ Let's change the *index.js* file in the following way:
     const app = express()
     const Note = require('./models/note')
     // ..
-    
+
     const PORT = process.env.PORT
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
@@ -1663,17 +1663,17 @@ Creating a new note is accomplished like this:
 
     app.post('/api/notes', (request, response) => {
       const body = request.body
-    
+
       if (body.content === undefined) {
         return response.status(400).json({ error: 'content missing' })
       }
-    
+
       const note = new Note({
         content: body.content,
         important: body.important || false,
         date: new Date(),
       })
-    
+
       note.save().then(savedNote => {
         response.json(savedNote.toJSON())
       })
@@ -1724,7 +1724,7 @@ There's actually two different types of error situations. In one of those situat
 
 If we make the following request, we will get the error message shown below:
 
-``` 
+```
 
 Method: GET
 Path:   /api/notes/5a3b7c3c31d61cb9f8a0343
@@ -1738,7 +1738,7 @@ Body:   {}
 
 The other error situation happens when the id is in the correct format, but no note is found in the database for that id.
 
-``` 
+```
 
 Method: GET
 Path:   /api/notes/5a3b7c3c31d61cbd9f8a0343
@@ -1756,11 +1756,11 @@ Let's change the code in the following way:
     app.get('/api/notes/:id', (request, response) => {
       Note.findById(request.params.id)
         .then(note => {
-          if (note) {        
-            response.json(note.toJSON())      
-            } else {        
-            response.status(404).end()       
-            }    
+          if (note) {
+            response.json(note.toJSON())
+            } else {
+            response.status(404).end()
+            }
             })
         .catch(error => {
           console.log(error)
@@ -1792,7 +1792,7 @@ We have written the code for the error handler among the rest of our code. This 
 
 Let's change the handler for the */api/notes/:id* route, so that it passes the error forward with the *next* function. The next function is passed to the handler as the third parameter:
 
-    app.get('/api/notes/:id', (request, response, next) => {  
+    app.get('/api/notes/:id', (request, response, next) => {
         Note.findById(request.params.id)
         .then(note => {
           if (note) {
@@ -1810,14 +1810,14 @@ Express [error handlers](https://expressjs.com/en/guide/error-handling.html) are
 
     const errorHandler = (error, request, response, next) => {
       console.error(error.message)
-    
+
       if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
-      } 
-    
+      }
+
       next(error)
     }
-    
+
     app.use(errorHandler)
 
 The error handler checks if the error is a *CastError* exception, in which case we know that the error was caused by an invalid object id for Mongo. In this situation the error handler will send a response to the browser with the response object passed as a parameter. In all other error situations, the middleware passes the error forward to the default Express error handler.
@@ -1831,36 +1831,36 @@ The correct order is the following:
     app.use(express.static('build'))
     app.use(express.json())
     app.use(logger)
-    
+
     app.post('/api/notes', (request, response) => {
       const body = request.body
       // ...
     })
-    
+
     const unknownEndpoint = (request, response) => {
       response.status(404).send({ error: 'unknown endpoint' })
     }
-    
+
     // handler of requests with unknown endpoint
     app.use(unknownEndpoint)
-    
+
     const errorHandler = (error, request, response, next) => {
       // ...
     }
-    
+
     // handler of requests with result to errors
     app.use(errorHandler)
 
 The json-parser middleware should be among the very first middleware loaded into Express. If the order was the following:
 
     app.use(logger) // request.body is empty!
-    
+
     app.post('/api/notes', (request, response) => {
       // request.body is empty!
       const body = request.body
       // ...
     })
-    
+
     app.use(express.json())
 
 Then the JSON data sent with the HTTP requests would not be available for the logger middleware or the POST route handler, since the *request.body* would be an empty object.
@@ -1872,10 +1872,10 @@ For example, the following loading order would cause an issue:
     const unknownEndpoint = (request, response) => {
       response.status(404).send({ error: 'unknown endpoint' })
     }
-    
+
     // handler of requests with unknown endpoint
     app.use(unknownEndpoint)
-    
+
     app.get('/api/notes', (request, response) => {
       // ...
     })
@@ -1900,12 +1900,12 @@ The toggling of the importance of a note can be easily accomplished with the [fi
 
     app.put('/api/notes/:id', (request, response, next) => {
       const body = request.body
-    
+
       const note = {
         content: body.content,
         important: body.important,
       }
-    
+
       Note.findByIdAndUpdate(request.params.id, note, { new: true })
         .then(updatedNote => {
           response.json(updatedNote.toJSON())
@@ -1928,11 +1928,11 @@ When we toggle the importance of a note, we see the following worrisome error me
 Googling the error message will lead to [instructions](https://stackoverflow.com/questions/52572852/deprecationwarning-collection-findandmodify-is-deprecated-use-findoneandupdate) for fixing the problem. Following [the suggestion in the Mongoose documentation](https://mongoosejs.com/docs/deprecations.html), we add the following line to the *note.js* file:
 
     const mongoose = require('mongoose')
-    
+
     mongoose.set('useFindAndModify', false)
     // ...
-      
-    module.exports = mongoose.model('Note', noteSchema) 
+
+    module.exports = mongoose.model('Note', noteSchema)
 
 ## Validation and ESLint
 
@@ -2017,12 +2017,12 @@ Many of the route handlers changed the response data into the right format by ca
 
     app.post('/api/notes', (request, response, next) => {
       // ...
-    
+
       note.save()
         .then(savedNote => {
           response.json(savedNote.toJSON())
         })
-        .catch(error => next(error)) 
+        .catch(error => next(error))
     })
 
 We can accomplish the same functionality in a much cleaner way with [promise chaining](https://javascript.info/promise-chaining):
@@ -2202,7 +2202,7 @@ Before we move into the topic of testing, we will modify the structure of our pr
 
 After making the changes to the directory structure of our project, we end up with the following structure:
 
-``` 
+```
 ├── index.js
 ├── app.js
 ├── build
@@ -2216,7 +2216,7 @@ After making the changes to the directory structure of our project, we end up wi
 ├── utils
 │   ├── config.js
 │   ├── logger.js
-│   └── middleware.js  
+│   └── middleware.js
 ```
 
 So far we have been using *console.log* and *console.error* to print different information from the code. However, this is not a very good way to do things. Let's separate all printing to the console to it's own module *utils/logger.js*:
@@ -2224,11 +2224,11 @@ So far we have been using *console.log* and *console.error* to print different i
     const info = (...params) => {
       console.log(...params)
     }
-    
+
     const error = (...params) => {
       console.error(...params)
     }
-    
+
     module.exports = {
       info, error
     }
@@ -2241,9 +2241,9 @@ The contents of the *index.js* file used for starting the application gets simpl
     const http = require('http')
     const config = require('./utils/config')
     const logger = require('./utils/logger')
-    
+
     const server = http.createServer(app)
-    
+
     server.listen(config.PORT, () => {
       logger.info(`Server running on port ${config.PORT}`)
     })
@@ -2253,10 +2253,10 @@ The *index.js* file only imports the actual application from the *app.js* file a
 The handling of environment variables is extracted into a separate *utils/config.js* file:
 
     require('dotenv').config()
-    
+
     let PORT = process.env.PORT
     let MONGODB_URI = process.env.MONGODB_URI
-    
+
     module.exports = {
       MONGODB_URI,
       PORT
@@ -2268,13 +2268,13 @@ The contents of the *notes.js* module are the following:
 
     const notesRouter = require('express').Router()
     const Note = require('../models/note')
-    
+
     notesRouter.get('/', (request, response) => {
       Note.find({}).then(notes => {
         response.json(notes.map(note => note.toJSON()))
       })
     })
-    
+
     notesRouter.get('/:id', (request, response, next) => {
       Note.findById(request.params.id)
         .then(note => {
@@ -2286,23 +2286,23 @@ The contents of the *notes.js* module are the following:
         })
         .catch(error => next(error))
     })
-    
+
     notesRouter.post('/', (request, response, next) => {
       const body = request.body
-    
+
       const note = new Note({
         content: body.content,
         important: body.important || false,
         date: new Date()
       })
-    
+
       note.save()
         .then(savedNote => {
           response.json(savedNote.toJSON())
         })
         .catch(error => next(error))
     })
-    
+
     notesRouter.delete('/:id', (request, response, next) => {
       Note.findByIdAndRemove(request.params.id)
         .then(() => {
@@ -2310,22 +2310,22 @@ The contents of the *notes.js* module are the following:
         })
         .catch(error => next(error))
     })
-    
+
     notesRouter.put('/:id', (request, response, next) => {
       const body = request.body
-    
+
       const note = {
         content: body.content,
         important: body.important,
       }
-    
+
       Note.findByIdAndUpdate(request.params.id, note, { new: true })
         .then(updatedNote => {
           response.json(updatedNote.toJSON())
         })
         .catch(error => next(error))
     })
-    
+
     module.exports = notesRouter
 
 This is almost an exact copy-paste of our previous *index.js* file.
@@ -2333,9 +2333,9 @@ This is almost an exact copy-paste of our previous *index.js* file.
 However, there are a few significant changes. At the very beginning of the file we create a new [router](http://expressjs.com/en/api.html#router) object:
 
     const notesRouter = require('express').Router()
-    
+
     //...
-    
+
     module.exports = notesRouter
 
 The module exports the router to be available for all consumers of the module.
@@ -2373,9 +2373,9 @@ After making these changes, our *app.js* file looks like this:
     const middleware = require('./utils/middleware')
     const logger = require('./utils/logger')
     const mongoose = require('mongoose')
-    
+
     logger.info('connecting to', config.MONGODB_URI)
-    
+
     mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
       .then(() => {
         logger.info('connected to MongoDB')
@@ -2383,17 +2383,17 @@ After making these changes, our *app.js* file looks like this:
       .catch((error) => {
         logger.error('error connection to MongoDB:', error.message)
       })
-    
+
     app.use(cors())
     app.use(express.static('build'))
     app.use(express.json())
     app.use(middleware.requestLogger)
-    
+
     app.use('/api/notes', notesRouter)
-    
+
     app.use(middleware.unknownEndpoint)
     app.use(middleware.errorHandler)
-    
+
     module.exports = app
 
 The file takes different middleware into use, and one of these is the *notesRouter* that is attached to the */api/notes* route.
@@ -2401,7 +2401,7 @@ The file takes different middleware into use, and one of these is the *notesRout
 Our custom middleware has been moved to a new *utils/middleware.js* module:
 
     const logger = require('./logger')
-    
+
     const requestLogger = (request, response, next) => {
       logger.info('Method:', request.method)
       logger.info('Path:  ', request.path)
@@ -2409,23 +2409,23 @@ Our custom middleware has been moved to a new *utils/middleware.js* module:
       logger.info('---')
       next()
     }
-    
+
     const unknownEndpoint = (request, response) => {
       response.status(404).send({ error: 'unknown endpoint' })
     }
-    
+
     const errorHandler = (error, request, response, next) => {
       logger.error(error.message)
-    
+
       if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
       } else if (error.name === 'ValidationError') {
         return response.status(400).json({ error: error.message })
       }
-    
+
       next(error)
     }
-    
+
     module.exports = {
       requestLogger,
       unknownEndpoint,
@@ -2435,9 +2435,9 @@ Our custom middleware has been moved to a new *utils/middleware.js* module:
 The responsibility of establishing the connection to the database has been given to the *app.js* module. The *note.js* file under the *models* directory only defines the Mongoose schema for notes.
 
     const mongoose = require('mongoose')
-    
+
     mongoose.set('useFindAndModify', false)
-    
+
     const noteSchema = new mongoose.Schema({
       content: {
         type: String,
@@ -2450,7 +2450,7 @@ The responsibility of establishing the connection to the database has been given
       },
       important: Boolean,
     })
-    
+
     noteSchema.set('toJSON', {
       transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString()
@@ -2458,16 +2458,14 @@ The responsibility of establishing the connection to the database has been given
         delete returnedObject.__v
       }
     })
-    
+
     module.exports = mongoose.model('Note', noteSchema)
 
-For smaller applications the structure does not matter that much. Once the application starts to grow in size, you are going to have to establish some kind of structure, and separate the different responsibilities of the application into separate modules.
+Once the application starts to grow in size, you are going to have to establish some kind of structure, and separate the different responsibilities of the application into separate modules.
 
-There is no strict directory structure or file naming convention that is required for Express applications. To contrast this, Ruby on Rails does require a specific structure. Our current structure simply follows some of the best practices you can come across on the internet.
+There is no strict directory structure or file naming convention that is required for Express applications. To contrast this, Ruby on Rails does require a specific structure.
 
 ### Testing Node applications
-
-We have completely neglected one essential area of software development, and that is automated testing.
 
 The logic of our application is so simple, that there is not much that makes sense to test with unit tests. Let's create a new file *utils/for\_testing.js* and write a couple of simple functions that we can use for test writing practice:
 
@@ -2477,15 +2475,15 @@ The logic of our application is so simple, that there is not much that makes sen
         .reverse()
         .join('')
     }
-    
+
     const average = (array) => {
       const reducer = (sum, item) => {
         return sum + item
       }
-    
+
       return array.reduce(reducer, 0) / array.length
     }
-    
+
     module.exports = {
       palindrome,
       average,
@@ -2533,22 +2531,22 @@ Alternatively, Jest can look for a configuration file with the default name *jes
 Let's create a separate directory for our tests called *tests* and create a new file called *palindrome.test.js* with the following contents:
 
     const palindrome = require('../utils/for_testing').palindrome
-    
+
     test('palindrome of a', () => {
       const result = palindrome('a')
-    
+
       expect(result).toBe('a')
     })
-    
+
     test('palindrome of react', () => {
       const result = palindrome('react')
-    
+
       expect(result).toBe('tcaer')
     })
-    
+
     test('palindrome of releveler', () => {
       const result = palindrome('releveler')
-    
+
       expect(result).toBe('releveler')
     })
 
@@ -2556,7 +2554,7 @@ The ESLint configuration we added to the project in the previous part complains 
 
     module.exports = {
       "env": {
-        "commonjs": true 
+        "commonjs": true
         "es6": true,
         "node": true,
         "jest": true,  },
@@ -2662,7 +2660,7 @@ The *.env* file has *separate variables* for the database addresses of the devel
 
     MONGODB_URI=mongodb+srv://fullstack:secred@cluster0-ostce.mongodb.net/note-app?retryWrites=true
     PORT=3001
-    
+
     TEST_MONGODB_URI=mongodb+srv://fullstack:secret@cluster0-ostce.mongodb.net/note-app-test?retryWrites=true
 
 The *config* module that we have implemented slightly resembles the [node-config](https://github.com/lorenwest/node-config) package. Writing our own implementation is justified since our application is simple, and also because it teaches us valuable lessons.
@@ -2680,16 +2678,16 @@ Let's write our first test in the *tests/note\_api.test.js* file:
     const mongoose = require('mongoose')
     const supertest = require('supertest')
     const app = require('../app')
-    
+
     const api = supertest(app)
-    
+
     test('notes are returned as json', async () => {
       await api
         .get('/api/notes')
         .expect(200)
         .expect('Content-Type', /application\/json/)
     })
-    
+
     afterAll(() => {
       mongoose.connection.close()
     })
@@ -2708,9 +2706,9 @@ One tiny but important detail: at the beginning of this part we extracted the Ex
     const http = require('http')
     const config = require('./utils/config')
     const logger = require('./utils/logger')
-    
+
     const server = http.createServer(app)
-    
+
     server.listen(config.PORT, () => {
       logger.info(`Server running on port ${config.PORT}`)
     })
@@ -2733,13 +2731,13 @@ Let's write a few more tests:
 
     test('there are two notes', async () => {
       const response = await api.get('/api/notes')
-    
+
       expect(response.body).toHaveLength(2)
     })
-    
+
     test('the first note is about HTTP methods', async () => {
       const response = await api.get('/api/notes')
-    
+
       expect(response.body[0].content).toBe('HTML is easy')
     })
 
@@ -2775,7 +2773,7 @@ Let's initialize the database *before every test* with the [beforeEach](https://
     const app = require('../app')
     const api = supertest(app)
     const Note = require('../models/note')
-    
+
     const initialNotes = [
       {
         content: 'HTML is easy',
@@ -2786,13 +2784,13 @@ Let's initialize the database *before every test* with the [beforeEach](https://
         important: true,
       },
     ]
-    
+
     beforeEach(async () => {
       await Note.deleteMany({})
-    
+
       let noteObject = new Note(initialNotes[0])
       await noteObject.save()
-    
+
       noteObject = new Note(initialNotes[1])
       await noteObject.save()
     })
@@ -2801,12 +2799,12 @@ Let's also make the following changes to the last two tests:
 
     test('all notes are returned', async () => {
       const response = await api.get('/api/notes')
-    
+
       expect(response.body).toHaveLength(initialNotes.length)})
-    
+
     test('a specific note is within the returned notes', async () => {
       const response = await api.get('/api/notes')
-    
+
       const contents = response.body.map(r => r.content)
       expect(contents).toContain(
         'Browser can execute only Javascript'  )
@@ -2870,17 +2868,17 @@ Let's start with the operation for adding a new note. Let's write a test that ad
         content: 'async/await simplifies making async calls',
         important: true,
       }
-    
+
       await api
         .post('/api/notes')
         .send(newNote)
         .expect(200)
         .expect('Content-Type', /application\/json/)
-    
+
       const response = await api.get('/api/notes')
-    
+
       const contents = response.body.map(r => r.content)
-    
+
       expect(response.body).toHaveLength(initialNotes.length + 1)
       expect(contents).toContain(
         'async/await simplifies making async calls'
@@ -2893,21 +2891,21 @@ Let's also write a test that verifies that a note without content will not be sa
       const newNote = {
         important: true
       }
-    
+
       await api
         .post('/api/notes')
         .send(newNote)
         .expect(400)
-    
+
       const response = await api.get('/api/notes')
-    
+
       expect(response.body).toHaveLength(initialNotes.length)
     })
 
 The same verification steps will repeat in other tests later on, and it is a good idea to extract these steps into helper functions. Let's add the function into a new file called *tests/test\_helper.js* that is in the same directory as the test file.
 
     const Note = require('../models/note')
-    
+
     const initialNotes = [
       {
         content: 'HTML is easy',
@@ -2920,20 +2918,20 @@ The same verification steps will repeat in other tests later on, and it is a goo
         important: true
       }
     ]
-    
+
     const nonExistingId = async () => {
       const note = new Note({ content: 'willremovethissoon' })
       await note.save()
       await note.remove()
-    
+
       return note._id.toString()
     }
-    
+
     const notesInDb = async () => {
       const notes = await Note.find({})
       return notes.map(note => note.toJSON())
     }
-    
+
     module.exports = {
       initialNotes, nonExistingId, notesInDb
     }
@@ -2974,7 +2972,7 @@ The tests pass and we can safely refactor the tested routes to use async/await:
         next(exception)
       }
     })
-    
+
     notesRouter.delete('/:id', async (request, response, next) => {
       try {
         await Note.findByIdAndRemove(request.params.id)
@@ -3013,9 +3011,9 @@ Using the library is *very* easy. You introduce the library in *src/app.js*:
     const middleware = require('./utils/middleware')
     const logger = require('./utils/logger')
     const mongoose = require('mongoose')
-    
+
     // ...
-    
+
     module.exports = app
 
 The 'magic' of the library allows us to eliminate the try-catch blocks completely. For example the route for deleting a note
@@ -3042,17 +3040,17 @@ The other routes become:
 
     notesRouter.post('/', async (request, response) => {
       const body = request.body
-    
+
       const note = new Note({
         content: body.content,
         important: body.important === undefined ? false : body.important,
         date: new Date(),
       })
-    
+
       const savedNote = await note.save()
       response.json(savedNote.toJSON())
     })
-    
+
     notesRouter.get('/:id', async (request, response) => {
       const note = await Note.findById(request.params.id)
       if (note) {
@@ -3068,10 +3066,10 @@ Let's return to writing our tests and take a closer look at the *beforeEach* fun
 
     beforeEach(async () => {
       await Note.deleteMany({})
-    
+
       let noteObject = new Note(helper.initialNotes[0])
       await noteObject.save()
-    
+
       noteObject = new Note(helper.initialNotes[1])
       await noteObject.save()
     })
@@ -3081,7 +3079,7 @@ There's a better way of saving multiple objects to the database:
     beforeEach(async () => {
       await Note.deleteMany({})
       console.log('cleared')
-    
+
       helper.initialNotes.forEach(async (note) => {
         let noteObject = new Note(note)
         await noteObject.save()
@@ -3092,7 +3090,7 @@ There's a better way of saving multiple objects to the database:
 
 The tests don't quite seem to work however, so we have added some console logs to help us find the problem. The console displays the following output:
 
-``` 
+```
 cleared
 done
 entered test
@@ -3106,20 +3104,20 @@ One way of fixing this is to wait for all of the asynchronous operations to fini
 
     beforeEach(async () => {
       await Note.deleteMany({})
-    
+
       const noteObjects = helper.initialNotes
         .map(note => new Note(note))
       const promiseArray = noteObjects.map(note => note.save())
       await Promise.all(promiseArray)
     })
 
-The returned values of each promise in the array can still be accessed when using the Promise.all method. If we wait for the promises to be resolved with the *await* syntax *const results = await Promise.all(promiseArray)*, the operation will return an array that contains the resolved values for each promise in the *promiseArray*, and they appear in the same order as the promises in the array.
+The returned values of each promise in the array can still be accessed when using the Promise.all method. If we wait for the promises to be resolved with the `await` syntax `const results = await Promise.all(promiseArray)`, the operation will return an array that contains the resolved values for each promise in the `promiseArray`, and they appear in the same order as the promises in the array.
 
 Promise.all executes the promises it receives in parallel. If the promises need to be executed in a particular order, this will be problematic. In situations like this, the operations can be executed inside of a [for...of](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of) block, that guarantees a specific execution order.
 
     beforeEach(async () => {
       await Note.deleteMany({})
-    
+
       for (let note of helper.initialNotes) {
         let noteObject = new Note(note)
         await noteObject.save()
@@ -3238,7 +3236,7 @@ Paradoxically, schema-less databases like Mongo require developers to make far m
 In this case, we make the decision to store the ids of the notes created by the user in the user document. Let's define the model for representing a user in the *models/user.js* file:
 
     const mongoose = require('mongoose')
-    
+
     const userSchema = new mongoose.Schema({
       username: String,
       name: String,
@@ -3250,7 +3248,7 @@ In this case, we make the decision to store the ids of the notes created by the 
         }
       ],
     })
-    
+
     userSchema.set('toJSON', {
       transform: (document, returnedObject) => {
         returnedObject.id = returnedObject._id.toString()
@@ -3260,9 +3258,9 @@ In this case, we make the decision to store the ids of the notes created by the 
         delete returnedObject.passwordHash
       }
     })
-    
+
     const User = mongoose.model('User', userSchema)
-    
+
     module.exports = User
 
 The type of the field is *ObjectId* that references *note*-style documents. Mongo does not inherently know that this is a field that references notes, the syntax is purely related to and defined by Mongoose.
@@ -3287,9 +3285,9 @@ In stark contrast to the conventions of relational databases, *references are no
 
 ### Creating users
 
-Let's implement a route for creating new users. The password hash is the output of a one-way hash function applied to the user's password. It is never wise to store unencrypted plaintext passwords in the database\!
+The password hash is the output of a one-way hash function applied to the user's password. It is never wise to store unencrypted plaintext passwords in the database\!
 
-Let's install the [bcrypt](https://github.com/kelektiv/node.bcrypt.js) package for generating the password hashes:
+Let's install the bcrypt package for generating the password hashes:
 
     npm install bcrypt --save
 
@@ -3298,9 +3296,9 @@ Creating new users happens in compliance with the RESTful conventions discussed 
 Let's define a separate *router* for dealing with users in a new *controllers/users.js* file. Let's take the router into use in our application in the *app.js* file, so that it handles requests made to the */api/users* url:
 
     const usersRouter = require('./controllers/users')
-    
+
     // ...
-    
+
     app.use('/api/users', usersRouter)
 
 The contents of the file that defines the router are as follows:
@@ -3308,48 +3306,48 @@ The contents of the file that defines the router are as follows:
     const bcrypt = require('bcrypt')
     const usersRouter = require('express').Router()
     const User = require('../models/user')
-    
+
     usersRouter.post('/', async (request, response) => {
       const body = request.body
-    
+
       const saltRounds = 10
       const passwordHash = await bcrypt.hash(body.password, saltRounds)
-    
+
       const user = new User({
         username: body.username,
         name: body.name,
         passwordHash,
       })
-    
+
       const savedUser = await user.save()
-    
+
       response.json(savedUser)
     })
-    
+
     module.exports = usersRouter
 
 We can write a new test that verifies that a new user with the same username can not be created:
 
     describe('when there is initially one user in db', () => {
       // ...
-    
+
       test('creation fails with proper statuscode and message if username already taken', async () => {
         const usersAtStart = await helper.usersInDb()
-    
+
         const newUser = {
           username: 'root',
           name: 'Superuser',
           password: 'salainen',
         }
-    
+
         const result = await api
           .post('/api/users')
           .send(newUser)
           .expect(400)
           .expect('Content-Type', /application\/json/)
-    
+
         expect(result.body.error).toContain('`username` to be unique')
-    
+
         const usersAtEnd = await helper.usersInDb()
         expect(usersAtEnd).toHaveLength(usersAtStart.length)
       })
@@ -3378,7 +3376,7 @@ We must make the following changes to the schema defined in the *models/user.js*
             ref: 'Note'
         }],
     })
-    
+
     userSchema.plugin(uniqueValidator)
     // ...
 
@@ -3391,7 +3389,7 @@ As previously mentioned, document databases do not properly support join queries
 The Mongoose join is done with the [populate](http://mongoosejs.com/docs/populate.html) method. Let's update the route that returns all users first:
 
     usersRouter.get('/', async (request, response) => {
-      const users = await User    
+      const users = await User
         .find({}).populate('notes')
       response.json(users.map(u => u.toJSON()))
     })
@@ -3403,7 +3401,7 @@ We can use the populate parameter for choosing the fields we want to include fro
     usersRouter.get('/', async (request, response) => {
       const users = await User
         .find({}).populate('notes', { content: 1, date: 1 })
-    
+
       response.json(users.map(u => u.toJSON()))
     });
 
@@ -3412,13 +3410,7 @@ It's important to understand that the database does not actually know that the i
 The functionality of the *populate* method of Mongoose is based on the fact that we have defined "types" to the references in the Mongoose schema with the *ref* option:
 
     const noteSchema = new mongoose.Schema({
-      content: {
-        type: String,
-        required: true,
-        minlength: 5
-      },
-      date: Date,
-      important: Boolean,
+      ...
       user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -3426,8 +3418,6 @@ The functionality of the *populate* method of Mongoose is based on the fact that
     })
 
 ## Token authentication
-
-Users must be able to log into our application, and when a user is logged in, their user information must automatically be attached to any new notes they create.
 
 We will now implement support for [token based authentication](https://scotch.io/tutorials/the-ins-and-outs-of-token-based-authentication#toc-how-token-based-works) to the backend.
 
@@ -3439,7 +3429,7 @@ The principles of token based authentication are depicted in the following seque
 
 - If the username and the password are correct, the server generates a *token* which somehow identifies the logged in user.
 
-  - The token is signed digitally, making it impossible to falsify (with cryptographic means)
+  - The token is signed digitally, making it impossible to falsify 
 
 - The backend responds with a status code indicating the operation was successful, and returns the token with the response.
 
@@ -3459,36 +3449,34 @@ The code for login functionality goes to the file controllers/login.js.
     const bcrypt = require('bcrypt')
     const loginRouter = require('express').Router()
     const User = require('../models/user')
-    
+
     loginRouter.post('/', async (request, response) => {
       const body = request.body
-    
+
       const user = await User.findOne({ username: body.username })
       const passwordCorrect = user === null
         ? false
         : await bcrypt.compare(body.password, user.passwordHash)
-    
+
       if (!(user && passwordCorrect)) {
         return response.status(401).json({
           error: 'invalid username or password'
         })
       }
-    
+
       const userForToken = {
         username: user.username,
         id: user._id,
       }
-    
+
       const token = jwt.sign(userForToken, process.env.SECRET)
-    
+
       response
         .status(200)
         .send({ token, username: user.username, name: user.name })
     })
-    
-    module.exports = loginRouter
 
-If the user is not found, or the password is incorrect, the request is responded to with the status code [401 unauthorized](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2).
+    module.exports = loginRouter
 
 If the password is correct, a token is created with the method *jwt.sign*. The token contains the username and the user id in a digitally signed form.
 
@@ -3497,9 +3485,9 @@ The token has been digitally signed using a string from the environment variable
 Now the code for login just has to be added to the application by adding the new router to *app.js*.
 
     const loginRouter = require('./controllers/login')
-    
+
     //...
-    
+
     app.use('/api/login', loginRouter)
 
 ### Limiting creating new notes to logged in users
@@ -3621,7 +3609,7 @@ Do not save passwords to the database as clear text, but use the *bcrypt* librar
 
 **NB** Some Windows users have had problems with *bcrypt*. If you run into problems, remove the library with command
 
-    npm uninstall bcrypt --save 
+    npm uninstall bcrypt --save
 
 and install [bcryptjs](https://www.npmjs.com/package/bcryptjs) instead.
 
@@ -3685,7 +3673,7 @@ Remember that a normal [middleware](/en/part3/node_js_and_express#middleware) is
 
     const tokenExtractor = (request, response, next) => {
       // code that extracts the token
-    
+
       next()
     }
 
@@ -3711,3 +3699,878 @@ After adding token based authentication the tests for adding a new blog broke do
 
 This is the last exercise for this part of the course and it's time to push your code to GitHub and mark all of your finished exercises to the [exercise submission system](https://studies.cs.helsinki.fi/stats/courses/fullstackopen).
 
+# Part 9: Typescript
+
+This part is all about TypeScript: and open-source typed superset of JavaScript developed by Microsoft that compiles to plain JavaScript.
+
+In this part we will be using the tools previously introduced to build end-to-end features to an existing ecosystem with linters predefined and an existing codebase writing TypeScript. After doing this part you should be able to understand, develop and configure projects using TypeScript.
+
+## Background and introduction
+
+TypeScript is a programming language designed for large-scale JavaScript development created by Microsoft. For example Microsoft's *Azure Management Portal* (1,2 million lines of code) and the *Visual Studio Code* (300 000 lines of code) have both been written in TypeScript. To support building large-scale JavaScript applications, TypeScript offers e.g. better development-time tooling, static code analysis, compile-time type checking and code level documentation.
+
+### Main principle
+
+Programmer is even able to decide the version of the generated code, as long as it's ECMAScript 3 or newer. Typescript being a superset of JavaScript means that it includes all the features of JavaScript and its own additional features as well. In fact, all existing JavaScript code is actually valid TypeScript.
+
+TypeScript consists of three separate, but mutually fulfilling parts:
+
+  - The language
+  - The compiler
+  - The language Service
+
+*The compiler* is responsible for type information erasure (i.e. removing the typing information) and the code transformations. The code transformations enable TypeScript code to be transpiled into executable JavaScript. Everything related to the types is removed at compile-time, so TypeScript isn't actually genuine statically typed code.
+
+Traditionally *compiling* means that code is transformed from a human readable format to a machine readable format. In TypeScript human readable source code is transformed into another human readable source code, so the correct term would actually be *transpiling*. However compiling has been the most commonly used term in this context, so we will continue to use it.
+
+The compiler also performs a static code analysis. It can emit warnings or errors if it finds a reason to do so, and it can be set to perform additional tasks such as combining the generated code into a single file.
+
+*The language service* collects type information from the source code. Development tools can use the type information for providing intellisense, type hints and possible refactoring alternatives.
+
+### TypeScript key language features
+
+#### Type annotations
+
+Type annotations in TypeScript are a lightweight way to record the intended *contract* of a function or a variable. In the example below we have defined a function *birthdayGreeter* which accepts two arguments, one of type string and one of type number. The function will return a string.
+
+    const birthdayGreeter = (name: string, age: number): string => {
+      return `Happy birthday ${name}, you are now ${age} years old!`;
+    };
+    
+    const birthdayHero = "Jane User";
+    const age = 22;
+    
+    console.log(birthdayGreeter(birthdayHero, 22));
+
+#### Structural typing
+
+TypeScript is a structurally typed language. In structural typing two elements are considered to be compatible with one another if for each feature within the type of the first element a corresponding and identical feature exists within the type of the second element. Two types are considered to be identical if they are compatible with each other.
+
+#### Type inference
+
+The TypeScript compiler can attempt to infer the type information if no type has been specified. Variable's type can be inferred based on its assigned value and its usage. The type inference take place when initializing variables and members, setting parameter default values, and determining function return types.
+
+For example consider the function *add*
+
+    const add = (a: number, b: number) => {
+      /* The return value is used to determine
+         the return type of the function */
+      return a + b;
+    }
+
+The function's return value is inferred by retracing the code back to the return expression. The return expression performs an addition of the parameters a and b. We can see that a and b are numbers based on their types. Thus, we can infer the return value to be of type *number*.
+
+As a more complex example let's consider the code below. If you have not used TypeScript before, this example might be a bit complex. But do not worry, you can safely skip this example for now.
+
+    type CallsFunction = (callback: (result: string) => any) => void;
+    
+    const func: CallsFunction = (cb) => {
+      cb('done');
+      cb(1);
+    }
+    
+    func((result) => {
+      return result;
+    });
+
+First we have a declaration of a [type alias](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-aliases) called *CallsFunction*. CallsFunction is a function type with one parameter *callback*. The parameter *callback* is of type function which takes a string parameters and returns [any](http://www.typescriptlang.org/docs/handbook/basic-types.html#any) value. As we will learn later in this part *any* is a kind of "wildcard" type that can represent any type.
+
+Next we define the function *func* of type *CallsFunction*. From the function's type we can infer that its parameter function cb will only accept a string argument. To demonstrate this, there is also an example where the parameter function is called with a numeric value, which will cause an error in TypeScript.
+
+Lastly we call *func* giving it the following function as a parameter
+
+    (result) => {
+      return result;
+    }
+
+Despite the types of the parameter function not being defined, we can infer from the calling context that the argument *result* is of the type string.
+
+#### Type erasure
+
+TypeScript removes all type system constructs during compilation.
+
+Input:
+
+    let x: SomeType;
+
+Output:
+
+    let x;
+
+This means that no type information remains at runtime - nothing says that some variable x was declared as being of type *SomeType*.
+
+The lack of runtime type information can be surprising for programmers who are used to extensively using reflection or other metadata systems.
+
+### Why should one use TypeScript?
+
+On different forums you may stumble upon a lot of different arguments either for or against TypeScript. The truth is probably as vague as: it depends on your needs and use of the functions that TypeScript offers. Anyway, here are explained some of our reasoning behind why we think that the use of TypeScript may have some advantages.
+
+First of all, TypeScript offers *type checking and static code analysis*. We can require values to be of a certain type, and have the compiler warn about using them wrong. This can reduce runtime errors and you might even be able to reduce the amount of required unit tests in a project, at least concerning pure type tests. The static code analysis doesn't only warn about wrongful type usage, but also other mistakes such as misspelling a variable or function name or trying to use a variable beyond its scope.
+
+The second advantage of TypeScript is that the type annotations in the code can function as a type of *code level documentation*. It's easy to check from a function signature what kind of arguments the function can consume and what type of data it will return. This type of type annotation bound documentation will always be up to date and it makes it easier for new programmers to start working on an existing project. It is also helpful when returning to an old project.
+
+Types can be reused all around the code base, and a change to a type definition will automatically reflect everywhere the type is used. One might argue that you can achieve similar code level documentation with e.g. [JSDoc](https://jsdoc.app/about-getting-started.html), but it is not connected to the code as tightly as TypeScript's types, and may thus get out of sync more easily and is also more verbose.
+
+The third advantage of TypeScript is, that IDEs can provide more *specific and smarter intellisense* when they know exactly what types of data you are processing.
+
+All of these features are extremely helpful when you need to refactor your code. The static code analysis warns you about any errors in your code, and the intellisense can give you hints about available properties and even possible refactoring options. The code level documentation helps you understand the existing code. With the help of TypeScript it is also very easy to start using the newest JavaScript language features at an early stage just by altering its configuration.
+
+### What does TypeScript not fix?
+
+As mentioned above, TypeScript type annotations and type checking exist only at compile time and no longer at runtime. Even if the compiler does not throw any errors, runtime errors are still possible. These runtime errors are especially common when handling external input, such as data received from a network request.
+
+Lastly, below we list some issues many have with TypeScript, which might be good to be aware of:
+
+#### Incomplete, invalid or missing types in external libraries
+
+When using external libraries you may find that some libraries have either missing or in some way invalid type declarations. Most often this is due to the library not being written in TypeScript, and the person adding the type declarations manually not doing such a good job with it. In these cases you might need to define the type declarations yourself. However, there is a good chance someone has already added typings for the package you are using. Always check [DefinitelyTyped](https://definitelytyped.org/) or [their GitHub pages](https://github.com/DefinitelyTyped/DefinitelyTyped) first. They are probably the most popular sources for type declaration files. Otherwise you might want to start off by getting acquainted with TypeScript's own [documentation](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html) regarding type declarations.
+
+#### Sometimes type inference needs assistance
+
+The type inference in TypeScript is pretty good but not quite perfect. Sometimes you may feel like you have declared your types perfectly, but the compiler still tells you that the property does not exist or that this kind of usage is not allowed. In these cases you might need to help the compiler out by doing something like an "extra" type check, but be careful with type casting and type guards. Using type casting or type guards you are basically giving your word to the compiler that the value really is of the type that you declare. You might want to check out TypeScript's documentation regarding [Type Assertions](https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions) and [Type Guards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types).
+
+#### Mysterious type errors
+
+The errors given by the type system may sometimes be quite hard to understand, especially if you use complex types. As a rule of thumb, the TypeScript error messages have the most useful information at the end of the message. When running into long confusing messages, start reading them from the end.
+
+## First steps with Typescript
+
+After the brief introduction to the main principles of TypeScript, we are now ready to start our journey towards becoming FullStack TypeScript developers. Rather than giving you a thorough introduction to all aspects of TypeScript, in this part we will focus on the most common issues that arise when developing express backends or React frontends with TypeScript. In addition to language features we will also have a strong emphasis in tooling.
+
+### Setting things up
+
+Install TypeScript support to your editor of choice. For [Visual Studio Code](https://code.visualstudio.com/) you need the [typescript hero](https://marketplace.visualstudio.com/items?itemName=rbbit.typescript-hero) extension.
+
+In a production environment the need for compilation often means that you have to setup a "build step". During the build step all TypeScript code is compiled into JavaScript in a separate folder, and the production enviroment then runs the code from that folder. In a development environment it is often more handy to make use of real-time compilation and auto-reloading in order to be able to see the resulting changes faster.
+
+Let's start writing our first TypeScript-app. To keep things simple, let's start by using the npm package [ts-node](https://github.com/TypeStrong/ts-node). It compiles and executes the specified TypeScript file immediately, so that there is no need for a separate compilation step.
+
+You can install both *ts-node* and the official *typescript* package globally by running *npm install -g ts-node typescript*.
+
+If you can't or don't want to install global packages, you can create an npm project which has the required dependencies and run your scripts in it. We will also take this approach.
+
+As we remember from [part 3](/en/part3) an npm project is set by running the command *npm init* in an empty directory. Then we can install the dependencies by running
+
+    npm install --save-dev ts-node typescript
+
+and set up *scripts* within the package.json:
+
+    {
+      // ..
+      "scripts": {
+        "ts-node": "ts-node"  },
+      // ..
+    }
+
+Now within this directory you can use *ts-node* by running *npm run ts-node*. Note that if you are using ts-node through package.json, all command line arguments for the script need to be prefixed with *--*. So if you want to run file.ts with *ts-node*, the whole command is: --\>
+
+    npm run ts-node -- file.ts
+
+It is worth mentioning that TypeScript also provides an online playground, where you can quickly try out TypeScript code and instantly see the resulting JavaScript and possible compilation errors. You can access TypeScript's official playground [here](https://www.typescriptlang.org/play/index.html).
+
+**NB:** The playground might contain different tsconfig rules (which will be introduced later) than your local environment, which is why you might see different warnings there compared to your local environment. The playground's tsconfig is modifiable through the config dropdown menu.
+
+#### A note about the coding style
+
+JavaScript on itself is quite relaxed language, and things can often be done in multiple different ways. For example we have named vs anonymous functions, using const and let or var and the use of *semicolons*. This part of the course differs from the rest by using semicolons. It is not a TypeScript specific pattern but a general coding style decision when creating any kind of JavaScript. Whether to use them or not is usually in the hands of the programmer, but since it is expected to adapt ones coding habits to the existing codebase, in the exercises of this part it is expected to use semicolons and to adjust to the coding style of the part. This part has some other coding style differences compared to the rest of the course as well, e.g. in the directory naming.
+
+Let's start by creating a simple Multiplier. It looks exactly as it would in JavaScript.
+
+    const multiplicator = (a, b, printText) => {
+      console.log(printText,  a * b);
+    }
+    
+    multiplicator(2, 4, 'Multiplied numbers 2 and 4, the result is:');
+
+As you can see, this is still ordinary basic JavaScript with no additional TS features. It compiles and runs nicely with *npm run ts-node -- multiplier.ts*, as it would with Node. But what happens if we end up passing wrong *types* of arguments to the multiplicator function?
+
+Let's try it out\!
+
+    const multiplicator = (a, b, printText) => {
+      console.log(printText,  a * b);
+    }
+    
+    multiplicator('how about a string?', 4, 'Multiplied a string and 4, the result is:');
+
+Now when we run the code, the output is: *Multiplied a string and 4, the result is: NaN*.
+
+TypeScript natively supports multiple types including *number*, *string* and *Array*. See the comprehensive list [here](https://www.typescriptlang.org/docs/handbook/basic-types.html).
+
+    const multiplicator = (a: number, b: number, printText: string) => {
+      console.log(printText,  a * b);
+    }
+    
+    multiplicator('how about a string?', 4, 'Multiplied a string and 4, the result is:');
+
+Now the code is no longer valid JavaScript, but in fact TypeScript. When we try to run the code, we notice that it does not compile.
+
+### Creating your first own types
+
+Let's expand our multiplicator into a bit more versatile calculator that also supports addition and division. The calculator should accept three arguments: two numbers and the operation, either *multiply*, *add* or *divide*, which tells it what to do with the numbers
+
+In JavaScript the code would require additional validation to make sure the last argument is indeed a string. TypeScript offers a way to define specific types for inputs, which describe exactly what type of input is acceptable. On top of that, TypeScript can also show the info of the accepted values already on editor level.
+
+We can create a *type* using the TypeScript native keyword *type*. Let's describe our type *Operation*:
+
+    type Operation = 'multiply' | 'add' | 'divide';
+
+Now the `Operation` type accepts only three kinds of input; exactly the three strings we wanted. Using the OR operator `|` we can define a variable to accept multiple values by creating a [union type](https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types). In this case we used exact strings (that in technical terms are called [string literal types](http://www.typescriptlang.org/docs/handbook/advanced-types.html#string-literal-types)) but with unions you could also make the compiler to accept for example both string and number: *string | number*.
+
+The `type` keyword defines a new name for a type, [a type alias](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-aliases). Since the defined type is a union of three possible values, it is handy to give it an alias that has a representative name.
+
+Let's look at our calculator now:
+
+    type Operation = 'multiply' | 'add' | 'divide';
+    
+    const calculator = (a: number, b: number, op : Operation) => {
+      if (op === 'multiply') {
+        return a * b;
+      } else if (op === 'add') {
+        return a + b;
+      } else if (op === 'divide') {
+        if (b === 0) return 'can\'t divide by 0!';
+        return a / b;
+      }
+    }
+
+Now when we hover on top of the *Operation* type in the calculator function, we can immediately see suggestions on what to do with it.
+
+This is already pretty nice, but one thing we haven't touched yet is typing the return value of a function. Usually you want to know what a function returns, and it would be nice to have a guarantee that it actually returns what it says it does. Let's add a return value *number* to the calculator function:
+
+    type Operation = 'multiply' | 'add' | 'divide';
+    
+    const calculator = (a: number, b: number, op: Operation): number => {
+    
+      if (op === 'multiply') {
+        return a * b;
+      } else if (op === 'add') {
+        return a + b;
+      } else if (op === 'divide') {
+        if (b === 0) return 'this cannot be done';
+        return a / b;
+      }
+    }
+
+The compiler complains straight away, because in one case the function returns a string. There are couple of ways to fix this: we could extend the return type to allow string values, like so
+
+    const calculator = (a: number, b: number, op: Operation): number | string =>  {
+      // ...
+    }
+
+or we could create a return type which includes both possible types, much like our Operation type
+
+    type Result = string | number
+    
+    const calculator = (a: number, b: number, op: Operation): Result =>  {
+      // ...
+    }
+
+But now the question is if it's *really* okay for the function to return a string?
+
+When your code can end up in a situation where something is divided by 0, something has probably gone terribly wrong and an error should be thrown and handled where the function was called. When you are deciding to return values you weren't originally expecting, the warnings you see from TypeScript prevent you from making rushed decisions and help you to keep your code working as expected.
+
+One more thing to consider is, that even though we have defined types for our parameters, the generated JavaScript used at runtime does not contain the type checks. So if for example the *operation*-parameter's value comes from an external interface, there is no definite guarantee that it will be one of the allowed values. Therefore it's still better to include error handling and be prepared for the unexpected to happen. In this case, when there are multiple possible accepted values and all unexpected ones should result in an error, the [switch...case](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch) statement suits better than if...else in our code.
+
+The code of our calculator should actually look something like this:
+
+    type Operation = 'multiply' | 'add' | 'divide';
+    
+    type Result = number;
+    
+    const calculator = (a: number, b: number, op : Operation) : Result => {
+      switch(op) {
+        case 'multiply':
+          return a * b;
+        case 'divide':
+          if( b === 0) throw new Error('Can\'t divide by 0!');
+          return a / b;
+        case 'add':
+          return a + b;
+        default:
+          throw new Error('Operation is not multiply, add or divide!');
+      }
+    }
+    
+    try {
+      console.log(calculator(1, 5 , 'divide'))
+    } catch (e) {
+      console.log('Something went wrong, error message: ', e.message);
+    }
+
+The programs we have written are alright, but it sure would be better if we could use command line arguments instead of always having to change the code to calculate different things.  
+Let's try it out, as we would in a regular Node application, by accessing *process.argv*. But something is not right:
+
+![fullstack content](/static/07d7898a48d092c789aa57608097678f/5a190/5.png)
+
+### @types/{npm_package}
+
+Let's return to the basic idea of TypeScript. TypeScript expects all globally used code to be typed, as it does for your own code when your project has a reasonable configuration. The TypeScript library itself contains only typings for the code of the TypeScript package. It is possible to write your own typings for a library, but that is almost never needed - since the TypeScript community has done it for us\!
+
+As with npm, the TypeScript world also celebrates open source code. The community is active and continuously reacting to updates and changes in commonly used npm-packages.  
+
+You can almost always find the typings for npm-packages, so you don't have to create types for all of your thousands of dependencies alone.
+
+Usually types for existing packages can be found from the *@types*-organization within npm, and you can add the relevant types to your project by installing an npm package with the name of your package with @types/ - prefix. For example: `npm install --save-dev @types/react @types/express @types/lodash @types/jest @types/mongoose` and so on and so on. The *@types/\** are maintained by [Definitely typed](http://definitelytyped.org/), a community project with the goal to maintaining types of everything in one place.
+
+Sometimes an npm package can also include its types within the code and in that case installing the corresponding *@types/\** is not necessary.
+
+!!Since the typings are only used before compilation, the typings are not needed in the production build and they should *always* be in the devDependencies of the package.json.
+
+Since the global variable *process* is defined by Node itself, we get its typings by installing the package *@types/node*:
+
+    npm install --save-dev @types/node
+
+After installing the types, our compiler does not complain about the variable *process* anymore. Note that there is no need to require the types to the code, the installation of the package is enough\!
+
+### Improving the project
+
+Next let's add npm scripts to run our two programs *multiplier* and *calculator*:
+
+    {
+      "name": "part1",
+      "version": "1.0.0",
+      "description": "",
+      "main": "index.js",
+      "scripts": {
+        "ts-node": "ts-node",
+        "multiply": "ts-node multiplier.ts",    "calculate": "ts-node calculator.ts"  },
+      "author": "",
+      "license": "ISC",
+      "devDependencies": {
+        "ts-node": "^8.6.2",
+        "typescript": "^3.8.2"
+      }
+    }
+
+We can get the multiplier to work with command line parameters with the following changes
+
+    const multiplicator = (a: number, b: number, printText: string) => {
+      console.log(printText,  a * b);
+    }
+    
+    const a: number = Number(process.argv[2])
+    const b: number = Number(process.argv[3])
+    multiplicator(a, b, `Multiplied ${a} and ${b}, the result is:`);
+
+and we can run it with
+
+    npm run multiply 5 2
+
+if the program is run with parameters that are not of the right type, e.g.
+
+    npm run multiply 5 lol
+
+it "works" but gives us the answer
+
+    Multiplied 5 and NaN, the result is: NaN
+
+The reason for this is, that *Number('lol')* returns *NaN*, which is actually type *number*, so TypeScript has no power to rescue us from this kind of situation.
+
+In order to prevent this kind of behaviour, we have to validate the data given to us from the command line.
+
+Improved version of the multiplicator looks like this:
+
+    interface MultiplyValues {
+      value1: number;
+      value2: number;
+    }
+    
+    const parseArguments = (args: Array<string>): MultiplyValues => {
+      if (args.length < 4) throw new Error('Not enough arguments');
+      if (args.length > 4) throw new Error('Too many arguments');
+    
+      if (!isNaN(Number(args[2])) && !isNaN(Number(args[3]))) {
+        return {
+          value1: Number(args[2]),
+          value2: Number(args[3])
+        }
+      } else {
+        throw new Error('Provided values were not numbers!');
+      }
+    }
+    
+    const multiplicator = (a: number, b: number, printText: string) => {
+      console.log(printText,  a * b);
+    }
+    
+    try {
+      const { value1, value2 } = parseArguments(process.argv);
+      multiplicator(value1, value2, `Multiplied ${value1} and ${value2}, the result is:`);
+    } catch (e) {
+      console.log('Error, something bad happened, message: ', e.message);
+    }
+
+When we now run the program
+
+    npm run multiply 1 lol
+
+we get a proper error message:
+
+    Error, something bad happened, message:  Provided values were not numbers!
+
+Definition of the function *parseArguments* has a couple of interesting things:
+
+    const parseArguments = (args: Array<string>): MultiplyValues => {
+      // ...
+    }
+
+Firstly, the parameter *args* is an [array](http://www.typescriptlang.org/docs/handbook/basic-types.html#array) of strings. The return value has the type *MultiplyValues*, which is defined as follows:
+
+    interface MultiplyValues {
+      value1: number;
+      value2: number;
+    }
+
+The definition utilizes TypeScript's [Interface](http://www.typescriptlang.org/docs/handbook/interfaces.html) keyword, which is one way to define the "shape" an object should have. In our case it is quite obvious that the return value should be an object with two properties *value1* and *value2*, which should both be of type number.
+
+### Exercises 9.1.-9.3.
+
+#### setup
+
+Exercises 9.1.-9.7. will be all made to the same node project. Create the project in an empty directory with *npm init* and install the ts-node and typescript packages. Create also the file *tsconfig.json* to the directory with the following content:
+
+    {
+      "compilerOptions": {
+        "noImplicitAny": true,
+      }
+    }
+
+The *tsconfig.json* file is used to define how the TypeScript compiler should interpret the code, how strictly the compiler should work, which files to watch or ignore, and and [much much more](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html). For now we will only use the compiler option [noImplicitAny](https://www.typescriptlang.org/v2/en/tsconfig#noImplicitAny), that makes it mandatory to have types for all variables used.
+
+#### 9.1 Body mass index
+
+Create the code of this exercise to file *bmiCalculator.ts*
+
+Write a function *calculateBmi* that counts [BMI](https://en.wikipedia.org/wiki/Body_mass_index) based on given weight (in kilograms) and height (in centimeters) and then returns a message that suits the results.
+
+Call the function in the same file with hard-coded parameters and print out the result. The code
+
+    console.log(calculateBmi(180, 74))
+
+should print the following message
+
+    Normal (healthy weight)
+
+Create a npm script for running the program with command *npm run calculateBmi*
+
+#### 9.2 Exercise calculator
+
+Create the code of this exercise to file *exerciseCalculator.ts*
+
+Write a function *calculateExercises* that calculates the average time of *daily exercise hours* and compares it to the *target amount* of daily hours and returns an object that includes the following values:
+
+  - the number of days
+  - the number of training days
+  - the original target value
+  - the calculated average time
+  - boolean value describing if the target was reached
+  - a rating between the numbers 1-3 that tells how well the hours are met. You can decide on the metric on your own.
+  - a text value explaining the rating
+
+The daily exercise hours are given to the function as an [array](https://www.typescriptlang.org/docs/handbook/basic-types.html#array) that contains the number of exercise hours for each day in the training period. Eg. a week with 3 hours of training at Monday, none at Tuesday, 2 hours at Wednesday, 4.5 hours at Thursday and so on would be represented by the following array:
+
+    [3, 0, 2, 4.5, 0, 3, 1]
+
+For the Result object you should create an [interface](https://www.typescriptlang.org/docs/handbook/interfaces.html).
+
+If you would call the function with parameters *\[3, 0, 2, 4.5, 0, 3, 1\]* and *2* it could return
+
+    { periodLength: 7,
+      trainingDays: 5,
+      success: false,
+      rating: 2,
+      ratingDescription: 'not too bad but could be better',
+      target: 2,
+      average: 1.9285714285714286 }
+
+Create a npm script *npm run calculateExercises* for calling the function with hard coded values.
+
+#### 9.3 Command line
+
+Change the previous exercises so that you can give the parameters of *bmiCalculator* and *exerciseCalculator* as command line arguments.
+
+Your program could work eg. as follows:
+
+    $ npm run calculateBmi 180 91
+    
+    Overweight
+
+and
+
+    $ npm run calculateExercises 2 1 0 2 4.5 0 3 1 0 4
+    
+    { periodLength: 9,
+      trainingDays: 6,
+      success: false,
+      rating: 2,
+      ratingDescription: 'not too bad but could be better',
+      target: 2,
+      average: 1.7222222222222223 }
+
+In the example the *first argument* is the target value.
+
+Handle exceptions and errors appropriately. The exerciseCalculator should accept inputs of varied lengths. Determine by yourself how you manage to collect all needed input.
+
+### More about tsconfig
+
+In the exercises we used only one tsconfig rule [noImplicitAny](https://www.typescriptlang.org/v2/en/tsconfig#noImplicitAny). It's a good place to start, but now it's time to look into the config file a little deeper.
+
+The [tsconfig.json](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file contains all your core configurations on how you want TypeScript to work in your project. You can define how strictly you want the code to be inspected, what files to include and exclude (*node\_modules* is excluded by default), and where compiled files should be placed (more on this later).
+
+Let's specify the following configurations in our *tsconfig.json* file:
+
+    {
+      "compilerOptions": {
+        "target": "ES2020",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "esModuleInterop": true
+      }
+    }
+
+Do not worry too much about the *compilerOptions*, they will be under closer inspection on part 2.
+
+You can find explanations for each of the configurations from the TypeScript documentation, or the really handy [tsconfig page](https://www.typescriptlang.org/tsconfig), or from the tsconfig [schema definition](http://json.schemastore.org/tsconfig), which unfortunately is formatted a little worse than the first two options.
+
+### Adding express to the mix
+
+Right now we are at a pretty good place. Our project is set up and we have two executable calculators in it. However, since our aim is to learn FullStack development, it is time to start working with some HTTP-requests.
+
+Let us start by installing express:
+
+    npm install express
+
+add then add the *start* script to package.json:
+
+    {
+      // ..
+      "scripts": {
+        "ts-node": "ts-node",
+        "multiply": "ts-node multiplier.ts",
+        "calculate": "ts-node calculator.ts",
+        "start": "ts-node index.ts"  },
+      // ..
+    }
+
+Now we can create the file *index.ts*, and write the HTTP GET *ping* endpoint to it:
+
+    const express = require('express');
+    const app = express();
+    
+    app.get('/ping', (req, res) => {
+      res.send('pong');
+    });
+    
+    const PORT = 3003;
+    
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+
+Everything else seems to be working just fine, but as you'd expect the *req* and *res* parameters of *app.get* need typing. If you look carefully, VSCode is also complaining something about importing express. You can see a short yellow line of dots under the *require*.
+
+The complaint is that the *'require' call may be converted to an import*. Let us follow the advice and write the import as follows
+
+    import express from 'express';
+
+**NB**: VSCode offers you a possibility to fix the issues automatically by clicking the *Quick fix...* button. Keep your eyes open for these helpers/quick fixes; listening to your editor usually makes your code better and easier to read. The automatic fixes for issues can be a major time saver as well.
+
+Now we run into another problem - the compiler complains about the import statement. Once again the editor is our best friend when trying to find out what the issue is:
+
+![fullstack content](/static/42c8ddc465ac50724204530330e17888/5a190/7.png)
+
+We haven't installed types for *express*. Let's do what the suggestion says and run:
+
+    npm install --save-dev @types/express
+
+When we hover over the *require* statement, we can see the compiler interprets everything express related to be of type *any*.
+
+![fullstack content](/static/1cd92a8bd9863c3ce7156427741c4e93/5a190/8a.png)
+
+Whereas when we use *import*, the editor knows the actual types
+
+![fullstack content](/static/d93e9d88496d703f0c4c1bdf83b246b2/5a190/9a.png)
+
+Which import statement to use depends on the export method used in the imported package.
+
+A good rule of thumb is to try importing a module using the *import* statement first. We will always use this method in the *frontend*. If *import* does not work, try a combined method: *import ... = require('...')*.
+
+We strongly suggest you read more about TypeScript modules [here](https://www.typescriptlang.org/docs/handbook/modules.html).
+
+There is one more problem with the code
+
+![fullstack content](/static/b8b508be11f6f46ca98515ef7dcf11c0/5a190/9b.png)
+
+This is because we banned unused parameters in our *tsconfig.json*
+
+    {
+      "compilerOptions": {
+        "target": "ES2020",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,    "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "esModuleInterop": true
+      }
+    }
+
+This configuration might create problems if you have library-wide predefined functions which require declaring a variable even if it's not used at all, as is the case here. Fortunately this issue has already been solved on configuration level. Once again hovering over the issue gives us a solution. This time we can just click the quick fix button:
+
+![fullstack content](/static/1c9e9465bd26936e8e95df71cf69292f/5a190/14a.png)
+
+If it absolutely impossible to get rid of an unused variable, you can prefix it with an underscore to inform the compiler you have thought about it and there is nothing you can do.
+
+Let's rename the *req* variable to *\_req*.
+
+Finally we are ready to start the application. It seems to work fine:
+
+![fullstack content](/static/0ce223dcd8032134d6854a274d4b8ef9/5a190/11a.png)
+
+To simplify the development we should enable *auto reloading* to improve our workflow. In this course you have already used *nodemon*, but ts-node has an alternative called *ts-node-dev*. It is meant to be used only with a development environment which takes care of recompilation on every change, so restarting the application won't be necessary.
+
+Let's install *ts-node-dev* to our development dependencies
+
+    npm install --save-dev ts-node-dev
+
+add a script to *package.json*
+
+    {
+      // ...
+      "scripts": {
+          // ...
+          "dev": "ts-node-dev index.ts",  },
+      // ...
+    }
+
+And now by running *npm run dev* we have a working, auto-reloading development environment for our project\!
+
+### Exercises 9.4.-9.5.
+
+#### 9.4 Express
+
+Add express to your dependencies and create a HTTP GET endpoint *hello* that answers 'Hello Full Stack\!'
+
+The web app should be started with command *npm start* in production mode and *npm run dev* in development mode that should use *ts-node-dev* to run the app.
+
+Replace also your existing *tsconfig.json* file with the following content:
+
+    {
+      "compilerOptions": {
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "strictBindCallApply": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "esModuleInterop": true,
+        "declaration": true,
+      }
+    }
+
+make sure there are not any errors\!
+
+#### 9.5 WebBMI
+
+Add an endpoint for BMI-calculator that can be used by doing a HTTP GET request to endpoint *bmi* and specifying the input with [query string parameters](https://en.wikipedia.org/wiki/Query_string). For example to get bmi for a person having height 180 and weight 72, the url is <http://localhost:3002/bmi?height=180&weight=72>
+
+The response is a json of the form
+
+    {
+      weight: 72,
+      height: 180,
+      bmi: "Normal (healthy weight)"
+    }
+
+See the [express documentation](http://expressjs.com/en/5x/api.html#req.query) for info how to access the query parameters.
+
+If the query parameters of the request are of the wrong type or missing, response with proper status code and error message are given
+
+    {
+      error: "malformatted parameters"
+    }
+
+Do not copy the calculator code to file *index.ts*, make it a [typescript module](https://www.typescriptlang.org/docs/handbook/modules.html) that can be imported in *index.ts*.
+
+### The horrors of *any*
+
+Now that we have our first endpoints completed, you might notice we have used barely any TypeScript in these small examples. When examining the code a bit closer, we can see a few dangers lurking there.
+
+Let's add an HTTP GET endpoint *calculate* to our app:
+
+    import { calculator } from './calculator'
+    
+    // ...
+    
+    app.get('/calculate', (req, res) => {
+      const { value1, value2, op } = req.query
+    
+      const result = calculator(value1, value2, op)
+      res.send(result);
+    });
+
+When you hover over the *calculate* function, you can see the typing of the *calculator* even though the code itself does not contain any typings:
+
+![fullstack content](/static/9cad49a5955eb0dbdaea64417151983b/5a190/12a.png)
+
+But if you hover over the values parsed from the request, an issue arises:
+
+![fullstack content](/static/533645e072e442e23bf7576e3d022c01/5a190/13a.png)
+
+All of the variables have type *any*. It is not all that surprising, as no one has given them a type yet. There are a couple of ways to fix this, but the first we have to consider why this is accepted and where did the type *any* come from?
+
+In TypeScript every untyped variable which's type cannot be inferred, becomes implicitly [any](http://www.typescriptlang.org/docs/handbook/basic-types.html#any) type. Any is a kind of a "wild card" type which literally stands for *whatever type*. Things become implicitly any type quite often when one forgets to type functions.
+
+We can also explicitly type things *any*. The only difference between implicit and explicit any type is how the code looks, the compiler does not care about the difference.
+
+Programmers however see the code differently when *any* is explicitly enforced than when it implicitly inferred. Implicit *any* typings are usually considered problematic, since it is quite often due to the coder forgetting to assign types (or being too lazy to do it), and it also means that the full power of TypeScript is not properly exploited.
+
+This is why the configuration rule [noImplicitAny](https://www.typescriptlang.org/v2/en/tsconfig#noImplicitAny) exists on compiler level, and it is highly recommended to keep it on at all times. In the rare occasions you seriously cannot know what the type of a variable is, you should explicitly state that in the code
+
+    const a : any = /* no clue what the type will be! */.
+
+We already have *noImplicitAny* configured in our example, so why does the compiler not complain about the implicit *any* types? The reason is, that the *query* field of an express [Request](https://expressjs.com/en/5x/api.html#req) object is explicitly typed *any*. Same is true for the *request.body* field we use to post data to an app.
+
+What if we would like to prevent developers from using *any* type at all? Fortunately we have other methods than *tsconfig.json* to enforce coding style. What we can do is use *eslint* to manage our code. Let's install eslint and its typescript extensions:
+
+    npm install --save-dev eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser
+
+We will configure eslint to [disallow explicit any](https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-explicit-any.md). Write the following rules to *.eslintrc*:
+
+    {
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "ecmaVersion": 11,
+        "sourceType": "module"
+      },
+      "plugins": ["@typescript-eslint"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": 2
+      }
+    }
+
+Let us also set up a *lint* npm script to inspect the files with *.ts* extension by modifying the *package.json* file:
+
+    {
+      // ...
+      "scripts": {
+          "start": "ts-node index.ts",
+          "dev": "ts-node-dev index.ts",
+          "lint": "eslint --ext .ts ."      //  ...
+      },
+      // ...
+    }
+
+Now lint will complain if we try to define a variable of type *any*:
+
+![fullstack content](/static/b507fd23131ab2c569e987469a3f2265/5a190/13b.png)
+
+The [@typescript-eslint](https://github.com/typescript-eslint/typescript-eslint) has a lot of TypeScript specific eslint rules, but you can also use all basic eslint rules in TypeScript projects. For now we should propably go with the recommended settings and modify the rules as we go along whenever we find something we want to behave differently.
+
+On top of the recommended settings, we should try to get familiar with the coding style required in this part and *set the semicolon at the end of each line of code to required*.
+
+So we will use the following *.eslintrc*
+
+    {
+      "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking"
+      ],
+      "plugins": ["@typescript-eslint"],
+      "env": {
+        "node": true,
+        "es6": true
+      },
+      "rules": {
+        "@typescript-eslint/semi": ["error"],
+        "@typescript-eslint/no-explicit-any": 2,
+        "@typescript-eslint/explicit-function-return-type": 0,
+        "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+        "no-case-declarations": 0
+      },
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      }
+    }
+
+There are quite a few semicolons missing, but those are easy to add.
+
+And now let's fix everything that needs to be fixed\!
+
+### Exercises 9.6.-9.7.
+
+#### 9.6 Eslint
+
+Configure your project to use the above eslint settings and fix all the warnings.
+
+#### 9.7 WebExercises
+
+Add an endpoint to your app for the exercise calculator. It should be used by doing a HTTP POST request to endpoint *exercises* with the input in the request body
+
+    {
+      "daily_exercises": [1, 0, 2, 0, 3, 0, 2.5],
+      "target": 2.5
+    }
+
+Response is a json of the following form
+
+    {
+        "periodLength": 7,
+        "trainingDays": 4,
+        "success": false,
+        "rating": 1,
+        "ratingDescription": "bad",
+        "target": 2.5,
+        "average": 1.2142857142857142
+    }
+
+If the body of the request is not of the right form, response with proper status code and error message is given. The error message is either
+
+    {
+      error: "parameters missing"
+    }
+
+or
+
+    {
+      error: "malformatted parameters"
+    }
+
+depending on the error. The latter happens if the input values do not have the right type, i.e. they are not numbers or convertable to numbers.
+
+In this exercise you might find it beneficial to use the *explicit any* type when handling the data in the request body. Our eslint configuration is preventing this but you may unset this rule for a particular line by inserting the following comment as the previous line:
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+Note that you need to have a correct setup in order to get hold to the request body, see [part 3](/en/part3/node_js_and_express#receiving-data).
+
+[Propose changes to material](https://github.com/fullstack-hy2020/fullstack-hy2020.github.io/edit/source/src/content/9/en/part9b.md)
+
+[](/en/part9/background_and_introduction)
+
+Part 9a
+
+**Previous part**
+
+[](/en/part9/typing_the_express_app)
+
+Part 9c
+
+**Next part**
+
+[](https://www.helsinki.fi/)
+
+![Helsingin yliopiston logo](/static/uoh_centre-3689cf9983a2ebc8089c8f078a9c4769.svg)
+
+[](https://www.houston-inc.com/)
+
+![Houston inc. logo](data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjQ3cHgiIGhlaWdodD0iODJweCIgdmlld0JveD0iMCAwIDI0NyA4MiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KICAgIDwhLS0gR2VuZXJhdG9yOiBTa2V0Y2ggNTMuMiAoNzI2NDMpIC0gaHR0cHM6Ly9za2V0Y2hhcHAuY29tIC0tPgogICAgPHRpdGxlPmxvZ28vaG91c3RvbjwvdGl0bGU+CiAgICA8ZGVzYz5DcmVhdGVkIHdpdGggU2tldGNoLjwvZGVzYz4KICAgIDxkZWZzPgogICAgICAgIDxwb2x5Z29uIGlkPSJwYXRoLTEiIHBvaW50cz0iMCAwLjAyNjcxOTI2NzMgMTM4LjIwODE2NyAwLjAyNjcxOTI2NzMgMTM4LjIwODE2NyAzNi40NjU0MzgxIDAgMzYuNDY1NDM4MSI+PC9wb2x5Z29uPgogICAgPC9kZWZzPgogICAgPGcgaWQ9ImxvZ28vaG91c3RvbiIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgaWQ9ImhvdXN0b25fc2ltcGxlLmVwcy1jb3B5LTMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU0LjU4MTg5MywgMjMuMjYzMDQwKSI+CiAgICAgICAgICAgIDxtYXNrIGlkPSJtYXNrLTIiIGZpbGw9IndoaXRlIj4KICAgICAgICAgICAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3BhdGgtMSI+PC91c2U+CiAgICAgICAgICAgIDwvbWFzaz4KICAgICAgICAgICAgPGcgaWQ9IkNsaXAtMiI+PC9nPgogICAgICAgICAgICA8cGF0aCBkPSJNODIuODA1MTI5OCwxMy41MDY2NjAzIEw4Mi44MDUxMjk4LDI1LjUzNjU1MDkgTDg1Ljk5MzYyOSwyNS41MzY1NTA5IEw4NS45OTM2MjksMTMuNTA2NjYwMyBMOTAuNDA2NTQ5MywxMy41MDY2NjAzIEw5MC40MDY1NDkzLDEwLjQ0NTY3ODQgTDc4LjM3NTEwMzYsMTAuNDQ1Njc4NCBMNzguMzc1MTAzNiwxMy41MDY2NjAzIEw4Mi44MDUxMjk4LDEzLjUwNjY2MDMgWiBNOTYuNDkxMDQ5NSwxNy45NjM2ODg1IEM5Ni40OTEwNDk1LDIwLjU1OTU1NzIgOTguMzE3ODU1NywyMi43MDc5ODQyIDEwMC44ODYxNTcsMjIuNzA3OTg0MiBDMTAzLjQ1NDg4MiwyMi43MDc5ODQyIDEwNS4yNDcxOTQsMjAuNTk1NDY1NyAxMDUuMjQ3MTk0LDE4LjAxNzk3NTMgTDEwNS4yNDcxOTQsMTguMDAwMDIxMSBDMTA1LjI0NzE5NCwxNS40MDQyOTM3IDEwMy40MjA1MjksMTMuMjU1ODY2NyAxMDAuODUyMjI4LDEzLjI1NTg2NjcgQzk4LjI4MzUwMjMsMTMuMjU1ODY2NyA5Ni40OTEwNDk1LDE1LjM2ODM4NTMgOTYuNDkxMDQ5NSwxNy45NDU3MzQzIEw5Ni40OTEwNDk1LDE3Ljk2MzY4ODUgWiBNOTMuMTQ3MDQxMywxOC4wMTc5NzUzIEw5My4xNDcwNDEzLDE3Ljk4MjA2NjkgQzkzLjE0NzA0MTMsMTMuNjg1NDk1NiA5Ni40MDQ4MTI3LDEwLjE3NjkzMDYgMTAwLjg4NjE1NywxMC4xNzY5MzA2IEMxMDUuMzY3OTI1LDEwLjE3NjkzMDYgMTA4LjU5MTM0MywxMy42NDk3Mjg1IDEwOC41OTEzNDMsMTcuOTQ1NzM0MyBMMTA4LjU5MTM0MywxNy45NjM2ODg1IEMxMDguNTkxMzQzLDIyLjI2MDI1OTggMTA1LjMzMzU3MiwyNS43Njg4MjQ3IDEwMC44NTIyMjgsMjUuNzY4ODI0NyBDOTYuMzcwMzE4LDI1Ljc2ODgyNDcgOTMuMTQ3MDQxMywyMi4zMTQxMjI0IDkzLjE0NzA0MTMsMTguMDE3OTc1MyBMOTMuMTQ3MDQxMywxOC4wMTc5NzUzIFogTTcwLjQxMTkxMzcsMjIuNzk3MDQ4NSBDNjguNzU2ODc0MiwyMi43OTcwNDg1IDY3LjM3ODIxNjYsMjIuMDgxMjgzMSA2Ni4wNjg0MDcsMjAuOTcxNzk3NCBMNjQuMTcyMTg3MiwyMy4zMTY0NDg0IEM2NS45MTMxODA4LDI0LjkyNzk0NTQgNjguMTM2Njc2MiwyNS43MzMzNDA0IDcwLjM0MzA2NTYsMjUuNzMzMzQwNCBDNzMuNDgwMTA1NSwyNS43MzMzNDA0IDc1LjY2OTI0NzYsMjQuMDUwMTY4IDc1LjY2OTI0NzYsMjEuMDYxMDAzIEw3NS42NjkyNDc2LDIxLjAyNTA5NDUgQzc1LjcyMTEzMSwxOC4zOTM0NTg4IDc0LjA0ODU2MTUsMTcuMzAxNzg1OCA3MS4xMDExMDExLDE2LjQ5NTgyNTMgQzY4LjU4NDY4MzQsMTUuODMzOTIyNiA2Ny45NjM5MTk5LDE1LjUxMTMxMjIgNjcuOTYzOTE5OSwxNC41MDg5ODYyIEw2Ny45NjM5MTk5LDE0LjQ3MzA3NzggQzY3Ljk2MzkxOTksMTMuNzM4OTM0MSA2OC42MDIyMTM1LDEzLjE2NjY2MTEgNjkuODI1NjQ0OSwxMy4xNjY2NjExIEM3MS4wNDk2NDE4LDEzLjE2NjY2MTEgNzIuMzA3OTkyMSwxMy43MjA5Nzk5IDczLjYwMDgzNywxNC42NTIwNTQ1IEw3NS4yNTU1OTM4LDEyLjE0NTk1NjkgQzczLjc4OTk5MjUsMTAuOTEwNjUwMiA3MS45ODA3MTY0LDEwLjIzMDM2OTIgNjkuODYwNTYzNywxMC4yMzAzNjkyIEM2Ni44OTU3MTQ3LDEwLjIzMDM2OTIgNjQuNzc1NTYyLDEyLjAzODY1NTcgNjQuNzc1NTYyLDE0Ljc3NzU5MjYgTDY0Ljc3NTU2MiwxNC44MTMwNzY5IEM2NC43NzU1NjIsMTcuODAyNjY2MSA2Ni42NzEwNzQ5LDE4LjY0NDUzNSA2OS41ODQxODE5LDE5LjQzMjExNzMgQzcyLjAxNDY0NTYsMjAuMDc2NjMxMiA3Mi41MTQ2Nzc2LDIwLjUwNjI2MDEgNzIuNTE0Njc3NiwyMS4zNDc3MDQ5IEw3Mi41MTQ2Nzc2LDIxLjM4MzA0NzkgQzcyLjUxNDY3NzYsMjIuMjYwMjU5OCA3MS43MjIyODg4LDIyLjc5NzA0ODUgNzAuNDExOTEzNywyMi43OTcwNDg1IEw3MC40MTE5MTM3LDIyLjc5NzA0ODUgWiBNMzEuMzM2NDY5NywxNy45NjM2ODg1IEMzMS4zMzY0Njk3LDIwLjU1OTU1NzIgMzMuMTYzNywyMi43MDc5ODQyIDM1LjczMTg1OTksMjIuNzA3OTg0MiBDMzguMzAwMTYxMSwyMi43MDc5ODQyIDQwLjA5MjQ3MjYsMjAuNTk1NDY1NyA0MC4wOTI0NzI2LDE4LjAxNzk3NTMgTDQwLjA5MjQ3MjYsMTguMDAwMDIxMSBDNDAuMDkyNDcyNiwxNS40MDQyOTM3IDM4LjI2NTI0MjMsMTMuMjU1ODY2NyAzNS42OTY5NDEsMTMuMjU1ODY2NyBDMzMuMTI5MjA1MywxMy4yNTU4NjY3IDMxLjMzNjQ2OTcsMTUuMzY4Mzg1MyAzMS4zMzY0Njk3LDE3Ljk0NTczNDMgTDMxLjMzNjQ2OTcsMTcuOTYzNjg4NSBaIE0yOC4wMDk3MDg5LDE4LjAxNzk3NTMgTDI4LjAwOTcwODksMTcuOTgyMDY2OSBDMjguMDA5NzA4OSwxMy42ODU0OTU2IDMxLjI2NzQ4MDMsMTAuMTc2OTMwNiAzNS43NDg4MjQ1LDEwLjE3NjkzMDYgQzQwLjIzMDczNDIsMTAuMTc2OTMwNiA0My40MzYxOTgsMTMuNjQ5NzI4NSA0My40NTQwMTA5LDE3Ljk0NTczNDMgTDQzLjQ1NDAxMDksMTcuOTYzNjg4NSBDNDMuNDU0MDEwOSwyMi4yNjAyNTk4IDQwLjE5NjIzOTUsMjUuNzY4ODI0NyAzNS43MTQ4OTUzLDI1Ljc2ODgyNDcgQzMxLjIzMjU2MTUsMjUuNzY4ODI0NyAyOC4wMDk3MDg5LDIyLjMxNDEyMjQgMjguMDA5NzA4OSwxOC4wMTc5NzUzIEwyOC4wMDk3MDg5LDE4LjAxNzk3NTMgWiBNNTMuODMwNDE3MSwyNS43MzMzNDA0IEM1Ny43NDI4ODEyLDI1LjczMzM0MDQgNjAuMjA3ODM5NywyMy40OTU4NDkyIDYwLjIwNzgzOTcsMTguOTMwNjcxNSBMNjAuMjA3ODM5NywxMC40MjcxNTg3IEw1Ny4wMDE4MTAzLDEwLjQyNzE1ODcgTDU3LjAwMTgxMDMsMTkuMDczNzM5OCBDNTcuMDAxODEwMywyMS40NzI2Nzc2IDU1LjgxMjMwODEsMjIuNjkwMDMgNTMuODY0NzcwNCwyMi42OTAwMyBDNTEuOTE3Mzc0MSwyMi42OTAwMyA1MC43Mjc3MzA1LDIxLjQxODk1NjMgNTAuNzI3NzMwNSwxOC45NjY1OCBMNTAuNzI3NzMwNSwxMC40MjcxNTg3IEw0Ny41Mzg2NjU4LDEwLjQyNzE1ODcgTDQ3LjUzODY2NTgsMTkuMDM3ODMxMyBDNDcuNTM4NjY1OCwyMy40Nzc4OTUgNDkuOTE3OTUzLDI1LjczMzM0MDQgNTMuODMwNDE3MSwyNS43MzMzNDA0IEw1My44MzA0MTcxLDI1LjczMzM0MDQgWiBNMy4xNTQ1NywzMy4xOTgxOTQ4IEwxMzUuMDM2NjMyLDMzLjE5ODE5NDggTDEzNS4wMzY2MzIsMy4zMDI0NDQ4OCBMMy4xNTQ1NywzLjMwMjQ0NDg4IEwzLjE1NDU3LDMzLjE5ODE5NDggWiBNMCwzNi40NzM5MjA0IEwxMzguMjA4MTY3LDM2LjQ3MzkyMDQgTDEzOC4yMDgxNjcsMC4wMjY3MTkyNjczIEwwLDAuMDI2NzE5MjY3MyBMMCwzNi40NzM5MjA0IFogTTE0LjgyMzExNDMsMTkuNDg1NDE0NCBMMjAuNzE4NjAwNSwxOS40ODU0MTQ0IEwyMC43MTg2MDA1LDI1LjUzNjU1MDkgTDIzLjkwNzY2NTIsMjUuNTM2NTUwOSBMMjMuOTA3NjY1MiwxMC40NDU2Nzg0IEwyMC43MTg2MDA1LDEwLjQ0NTY3ODQgTDIwLjcxODYwMDUsMTYuNDA2MDU0MiBMMTQuODIzMTE0MywxNi40MDYwNTQyIEwxNC44MjMxMTQzLDEwLjQ0NTY3ODQgTDExLjYzNDc1NjUsMTAuNDQ1Njc4NCBMMTEuNjM0NzU2NSwyNS41MzY1NTA5IEwxNC44MjMxMTQzLDI1LjUzNjU1MDkgTDE0LjgyMzExNDMsMTkuNDg1NDE0NCBaIE0xMTUuODY0OTIyLDE1Ljk0MTUwNjUgTDEyMi44OTc2MDIsMjUuNTM2NTUwOSBMMTI1LjYyMDk4OCwyNS41MzY1NTA5IEwxMjUuNjIwOTg4LDEwLjQ0NTY3ODQgTDEyMi40NjY0MTgsMTAuNDQ1Njc4NCBMMTIyLjQ2NjQxOCwxOS43MzYyMDggTDExNS42NTgzNzcsMTAuNDQ1Njc4NCBMMTEyLjcxMDkxNywxMC40NDU2Nzg0IEwxMTIuNzEwOTE3LDI1LjUzNjU1MDkgTDExNS44NjQ5MjIsMjUuNTM2NTUwOSBMMTE1Ljg2NDkyMiwxNS45NDE1MDY1IEwxMTUuODY0OTIyLDE1Ljk0MTUwNjUgWiIgaWQ9IkZpbGwtMSIgZmlsbD0iIzAwMDEwNSIgbWFzaz0idXJsKCNtYXNrLTIpIj48L3BhdGg+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4=)
+
+[About course](/en/about)[Course contents](/en#course-contents)[FAQ](/en/faq)[Partners](/en/companies)[Challenge](/en/challenge)

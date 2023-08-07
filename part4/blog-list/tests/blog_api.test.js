@@ -129,7 +129,7 @@ describe('User tests', () => {
     })
 
     const sendAndCheck400 = async (user) => {
-        await api.post('/api/users')
+        return api.post('/api/users')
             .send(user)
             .expect(400)
             .expect('Content-Type', /application\/json/)
@@ -144,11 +144,21 @@ describe('User tests', () => {
         await sendAndCheck400(user)
     })
 
-    test('User without short username can not be created', async () => {
+    test('User with short username can not be created', async () => {
         const user = {
             username: "M",
             name: "Mike Miller",
             password: "pass",
+        }
+
+        await sendAndCheck400(user)
+    })
+
+    test('User with short pass can not be created', async () => {
+        const user = {
+            username: "Mike",
+            name: "Mike Miller",
+            password: "pa",
         }
 
         await sendAndCheck400(user)
